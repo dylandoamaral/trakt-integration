@@ -1,0 +1,20 @@
+default_config:
+
+logger:
+  default: info
+  logs:
+    custom_components.trakt_tv: debug
+
+trakt_tv:
+  language: fr
+  update_interval: 1
+  sensors:
+    upcoming:
+      show:
+        days_to_fetch: 60
+      movie:
+        days_to_fetch: 90
+        max_medias: 3
+
+# If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
+# debugpy:
