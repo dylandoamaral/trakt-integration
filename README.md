@@ -15,7 +15,7 @@
   </a>
 </p>
 
-<p align="center">A integration of Trakt calendar that works with <a href="https://github.com/custom-cards/upcoming-media-card">upcoming media card</a> in a nice way.</p>
+<p align="center">An integration of Trakt calendar that works well with <a href="https://github.com/custom-cards/upcoming-media-card">upcoming media card</a>.</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/dylandoamaral/trakt-integration/main/images/showcase.png" />
@@ -23,13 +23,13 @@
 
 ## Install 🏠
 
-:warning: Versions 0.x.x are not very stable and still have many bugs, please create an issue if you encounter a bug or have a feature request.
+:warning: Versions 0.x.x are not very stable and still have many bugs. Please create an issue if you encounter a bug or have a feature request.
 
 ### HACS (recommended)
 
 This integration is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store).
 
-When installed you have to provide a `client_id` and a `client_secret`. Here is the steps to get this identifier:
+When installed you have to provide a `client_id` and a `client_secret`. Here are the steps to get this identifier:
 - Create a new application at `https://trakt.tv/oauth/applications`
 - Use the following redirect_uri:
   - With HA cloud configured: `https://<cloud-remote-url>/auth/external/callback`
@@ -67,7 +67,7 @@ trakt_tv:
         max_medias: 3
 ```
 
-Everything in the configuration is optional and have a default value (every values above are the default values for each field).
+Everything in the configuration is optional and has a default value (all the values above are the default values for each field).
 
 ### Global value
 
@@ -76,10 +76,10 @@ Everything in the configuration is optional and have a default value (every valu
 
 ### Upcoming media card
 
-Every upcoming media card sensors are located in `sensors` -> `upcoming`.
-By default, the integration does not create any sensors. You have to specify them inside your configuration to create them. It allows you to not create useless sensors that you will not use such as the sensor related to the `DVDs` and fetch the trakt API for nothing.
+Every upcoming media card sensor is located in `sensors` -> `upcoming`.
+By default, the integration does not create any sensors. You have to specify them inside your configuration to create them. It allows you not to create useless sensors that you will not use such as the sensor related to the `DVDs` and fetch the trakt API for nothing.
 
-For example, the following configuration will create two sensors, one that list your shows and another one that list your movies:
+For example, the following configuration will create two sensors. One that lists your shows and another one that list your movies:
 
 ```yaml
 trakt_tv:
@@ -95,7 +95,7 @@ trakt_tv:
         max_medias: 3
 ```
 
-There is two parameters for each sensor:
+There are two parameters for each sensor:
 
 - `days_to_fetch` should be a positive number
 - `max_medias` should be a positive number
@@ -106,7 +106,7 @@ There is two parameters for each sensor:
 
 There is already another integration for trakt ([sensor.trakt](https://github.com/custom-components/sensor.trakt)). However I still decided to create my own integration for the following reasons:
 - The other integration is almost never updated.
-- The didn't accept my pull request in 3 months (https://github.com/custom-components/sensor.trakt/pull/58) so I had to modify the integration in my local environment to fullfill my need.
+- They didn't accept my pull request in 3 months (https://github.com/custom-components/sensor.trakt/pull/58) so I had to modify the integration in my local environment to fullfill my need.
 - This integration provides more features than the old one such as the possibility to fetch more than 33 days (trakt single query limitation), the possibility to have both the movies and shows calendars at the same time, the possibility to have the movie calendar and other available calendars such as premiere or dvd.
 - This integration doesn't depends to any other library (even if I would like to use pydantic so much ARGHHH).
 
