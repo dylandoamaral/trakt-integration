@@ -1,48 +1,44 @@
-<h1 align="center">Trakt Integration</h1>
+# Trakt Integration
 
-<p align="center">
-  <a href="https://github.com/custom-components/hacs">
-    <img src="https://img.shields.io/badge/HACS-Default-orange.svg" />
-  </a>
-  <a href="https://github.com/dylandoamaral/trakt-integration">
-    <img src="https://img.shields.io/github/v/release/dylandoamaral/trakt-integration" />
-  </a>
-  <a href="https://github.com/dylandoamaral/trakt-integration">
-    <img src="https://img.shields.io/github/commit-activity/m/dylandoamaral/trakt-integration" />
-  </a>
-  <a href="https://www.buymeacoffee.com/dylandoamaral">
-    <img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow" />
-  </a>
-</p>
+[![HACS](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) 
+[![Release](https://img.shields.io/github/v/release/dylandoamaral/trakt-integration)](https://github.com/dylandoamaral/trakt-integration) 
+[![Last Commit](https://img.shields.io/github/last-commit/dylandoamaral/trakt-integration)](https://github.com/dylandoamaral/trakt-integration) 
+[![Donate Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow)](https://www.buymeacoffee.com/dylandoamaral)
 
-<p align="center">An integration of Trakt calendar that works well with <a href="https://github.com/custom-cards/upcoming-media-card">upcoming media card</a>.</p>
+View your Trakt calendar items in [Upcoming Media Cards](https://github.com/custom-cards/upcoming-media-card) on a Home Assistant dashboard.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/dylandoamaral/trakt-integration/main/images/showcase.png" />
-</p>
+:warning: This is still an early release. It may not be very stable and it may have bugs.
+See the [Issues](https://github.com/dylandoamaral/trakt-integration/issues) page if you encounter a bug or have a feature request.
 
-## Install 🏠
+![Showcase Example](https://raw.githubusercontent.com/dylandoamaral/trakt-integration/main/images/showcase.png)
 
-:warning: Versions 0.x.x are not very stable and still have many bugs. Please create an issue if you encounter a bug or have a feature request.
+-----
 
-### HACS (recommended)
+## Requirements
 
-This integration is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store).
+The following should be installed in Home Assistant to best use this integration:
+- [Upcoming Media Cards](https://github.com/custom-cards/upcoming-media-card)
 
-When installed you have to provide a `client_id` and a `client_secret`. Here are the steps to get this identifier:
-- Create a new application at `https://trakt.tv/oauth/applications`
-- Use the following redirect_uri:
-  - With HA cloud configured: `https://<cloud-remote-url>/auth/external/callback`
-  - Without HA cloud configured: `http://<local-ip>:/auth/external/callback`
-- Save the application and then note down the `client_id` and `client_secret`
+## Installation
 
-When this is done, the integration will not generate sensors immediately. You also have to provide the trakt configuration to specify which sensors you want. **[More info](https://github.com/dylandoamaral/trakt-integration#upcoming-media-card)**
+Installation is a multi-step process. Follow each of the following steps.
 
-## Configuration ⚙️
+### 1. Add HACS Integration
 
-Trakt integration is highly customizable.
+This integration is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store). Install it as follows:
+- In Home Assistant, go to HACS > Integrations
+- Press the **Explore & Add Repositories** button
+- Search for "Trakt"
+  - Note: There are two Trakt integrations.
+    Choose the one with the description "A Trakt integration for Home Assistant compatible with upcoming media card".
+    See [Why not use sensor.trakt?](#why-not-use-sensortrakt-)
+- Press the **Install this repository in HACS** button
+- Press the **Install** button
 
-Put the following configuration in your `configuration.yaml`:
+### 2. Update Configuration File
+
+The following shows all of the integration's default settings.
+Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configuration.yaml` file:
 
 ```yaml
 trakt_tv:
@@ -67,19 +63,31 @@ trakt_tv:
         max_medias: 3
 ```
 
-Everything in the configuration is optional and has a default value (all the values above are the default values for each field).
+#### Integration Settings
 
-### Global value
-
-- `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
+- `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
 - `update_interval` should be a positive number in minutes
 
-### Upcoming media card
+#### Available Sensors
 
-Every upcoming media card sensor is located in `sensors` -> `upcoming`.
-By default, the integration does not create any sensors. You have to specify them inside your configuration to create them. It allows you not to create useless sensors that you will not use such as the sensor related to the `DVDs` and fetch the trakt API for nothing.
+By default, this integration does not create any sensors.
+The settings that you include in the `configuration.yaml` file determines which sensors are created.
+This keeps you from having useless sensors that you don't need, such as the DVD sensor which will likely not fetch anything from the Trakt API,
+but you can still use it if you want to.
 
-For example, the following configuration will create two sensors. One that lists your shows and another one that list your movies:
+There are five sensors available under the `sensors` > `upcoming` array:
+- `show` for [TV Shows](https://trakt.tv/calendars/my/shows/) (actually, episodes). Creates `sensor.trakt_upcoming_shows`
+- `new_show` for [New Shows](https://trakt.tv/calendars/my/new-shows/) (series premiers). Creates `sensor.trakt_upcoming_new_shows`
+- `premiere` for [Season Premieres](https://trakt.tv/calendars/my/premieres/). Creates `sensor.trakt_upcoming_premieres`
+- `movie` for [Movies](https://trakt.tv/calendars/my/movies/) premieres. Creates `sensor.trakt_upcoming_movies`
+- `dvd` for [DVD & Blu-ray](https://trakt.tv/calendars/my/dvd/) releases. Creates `sensor.trakt_upcoming_dvds`
+
+There are two parameters for each sensor:
+- `days_to_fetch` should be a positive number for how many days to search
+- `max_medias` should be a positive number for how many items to grab
+
+For example, adding only the following to `configuration.yaml` will create two sensors.
+One with the next 10 TV episodes in the next 30 days and another with the next 5 movies coming out in the next 45 days:
 
 ```yaml
 trakt_tv:
@@ -89,36 +97,87 @@ trakt_tv:
     upcoming:
       show:
         days_to_fetch: 30
+        max_medias: 10
+      movie:
+        days_to_fetch: 45
         max_medias: 5
-      new_show:
-        days_to_fetch: 90
-        max_medias: 3
 ```
 
-There are two parameters for each sensor:
+### 3. Restart Home Assistant
 
-- `days_to_fetch` should be a positive number
-- `max_medias` should be a positive number
+- Confirm the `configuration.yaml` is valid in Configuration > Server Controls > Configuration validation > **Check Configuration** button
+- Restart your Home Assistant server in Configuration > Server Controls > Server management > **Restart** button
 
-## Additional information ℹ️
+Note: You will not see anything new in Home Assistant yet.
+
+### 4. Prepare Trakt
+
+You have to provide a `client_id` and a `client_secret` to use this integration. Get these keys with the following:
+- Go to the [Trakt API Apps](https://trakt.tv/oauth/applications) page and press the **New application** button
+- Fill in the **Name** (required) and **Description** (optional) fields. These fields are just for your own reference
+- Fill in **Redirect uri** with one of the following
+  - If you use HA Cloud: `https://<ha-cloud-remote-url>/auth/external/callback`
+  - If you do not use HA Cloud: `https://<your-ha-server-address>:<port>/auth/external/callback`
+- Do not enter anything in **Javascript (cors) origins** and do not select any **Permissions**
+- Press the **Save app** button
+- Record the displayed `client_id` and `client_secret`
+  - Note: You do not need to press the **Authorize** button!
+
+### 5. Add Home Assistant Integration
+
+- In Home Assistant, go to Configuration > Integrations
+- Press the **Add Integration** button
+- Search for "Trakt" and click on it
+- Enter the `client_id` and `client_secret` from Trakt
+- Press the **Submit** button
+- Press the **Finish** button
+
+Depending on the options you set in the `configuration.yaml` file, the sensors may take a while to be created and populated.
+
+### 6. Add an Upcoming Media Card
+
+Go to your Dashboard, enable editing, and add a manual card like the following:
+
+```yaml
+type: custom:upcoming-media-card
+entity: sensor.trakt_upcoming_shows
+title: Upcoming Episodes
+image_style: fanart
+hide_empty: true
+title_text: $title
+line1_text: $episode
+line2_text: $number
+line3_text: $day, $date $time
+line4_text: $empty
+max: 10
+```
+
+See the [Upcoming Media Card](https://github.com/custom-cards/upcoming-media-card) page for formatting and display options to add to your card.
+
+-----
+
+## Additional Information
 
 ### Why not use sensor.trakt ?
 
-There is already another integration for trakt ([sensor.trakt](https://github.com/custom-components/sensor.trakt)). However I still decided to create my own integration for the following reasons:
-- The other integration is almost never updated.
-- They didn't accept my pull request in 3 months (https://github.com/custom-components/sensor.trakt/pull/58) so I had to modify the integration in my local environment to fullfill my need.
-- This integration provides more features than the old one such as the possibility to fetch more than 33 days (trakt single query limitation), the possibility to have both the movies and shows calendars at the same time, the possibility to have the movie calendar and other available calendars such as premiere or dvd.
-- This integration doesn't depends to any other library (even if I would like to use pydantic so much ARGHHH).
+There is already another integration for Trakt, [sensor.trakt](https://github.com/custom-components/sensor.trakt). However, I decided to create my own integration for the following reasons:
+- The other integration is almost never updated
+- They haven't accepted my [pull request](https://github.com/custom-components/sensor.trakt/pull/58) for more than 3 months, so I modified it in my local environment to meet my needs
+- This integration provides more features than the old one
+  - Fetch more than 33 days (the single-query limitation on Trakt)
+  - Have both the Movies and TV Shows calendars at the same time
+  - Use other Trakt calendars such as Premieres, New Shows, and DVD & Blu-ray releases
+- This integration doesn't depends to any other library (even though I would like to use [pydantic](https://pydantic-docs.helpmanual.io/) so much, ARGHHH!)
 
-### Contribution
+### Feature Requests and Contributions
 
-Don't hesitate to ask for features or to contribute by yourself ⭐.
+Don't hesitate to [ask for features](https://github.com/dylandoamaral/trakt-integration/issues) or contribute your own [pull request](https://github.com/dylandoamaral/trakt-integration/pulls).
 
-## For developers 👨‍💻
+### For Developers
 
 If you want to add a feature or fix a bug by yourself, follow these instructions:
 
 1. Use [Visual Studio Code](https://github.com/microsoft/vscode) and use [dev containers](https://github.com/microsoft/vscode-dev-containers)
-2. Run the `Run Home Assistant on port 9123`.
-3. Add the trakt integration.
-4. Start to develop a new feature.
+2. Run the `Run Home Assistant on port 9123`
+3. Add the trakt integration
+4. Start to develop a new feature
