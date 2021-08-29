@@ -31,7 +31,8 @@
 <p align="center">
   The above image was generated using <a href="https://github.com/custom-cards/upcoming-media-card">Upcoming Media Card</a> and <a href="https://github.com/dylandoamaral/upcoming-media-card-modification">Upcoming Media Card modification</a>.
 </p>
------
+
+----
 
 ## Recomendations 💡
 
