@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  View your Trakt calendar items in <a href="https://github.com/custom-cards/upcoming-media-card">Upcoming Media Cards</a> on a Home Assistant dashboard.
+  View your Trakt calendar items in <a href="https://github.com/custom-cards/upcoming-media-card">Upcoming Media Card</a> on a Home Assistant dashboard.
 </p>
 
 <p align="center">
@@ -28,9 +28,12 @@
   <img src="https://raw.githubusercontent.com/dylandoamaral/trakt-integration/main/images/showcase.png" alt="Showcase Example" />
 </p>
 
+<p align="center">
+  The above image was generated using <a href="https://github.com/custom-cards/upcoming-media-card">Upcoming Media Card</a> and <a href="https://github.com/dylandoamaral/upcoming-media-card-modification">Upcoming Media Card modification</a>.
+</p>
 -----
 
-## Recomendations
+## Recomendations 💡
 
 Having the following installed in Home Assistant will help best use this integration:
 - [Upcoming Media Cards](https://github.com/custom-cards/upcoming-media-card)
@@ -51,7 +54,7 @@ This integration is available in [HACS](https://hacs.xyz/) (Home Assistant Commu
 - Press the **Install this repository in HACS** button
 - Press the **Install** button
 
-### 2. Update Configuration File ⚙️
+### 2. Update Configuration File
 
 The following shows all of the integration's default settings.
 Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configuration.yaml` file:
@@ -102,7 +105,7 @@ There are two parameters for each sensor:
 - `days_to_fetch` should be a positive number for how many days to search
 - `max_medias` should be a positive number for how many items to grab
 
-#### Example 📊
+#### Example
 
 For example, adding only the following to `configuration.yaml` will create two sensors.
 One with the next 10 TV episodes in the next 30 days and another with the next 5 movies coming out in the next 45 days:
@@ -191,7 +194,7 @@ There is already another integration for Trakt, [sensor.trakt](https://github.co
 
 Don't hesitate to [ask for features](https://github.com/dylandoamaral/trakt-integration/issues) or contribute your own [pull request](https://github.com/dylandoamaral/trakt-integration/pulls). ⭐
 
-### For Developers 👨‍💻
+### For Developers
 
 If you want to add a feature or fix a bug by yourself, follow these instructions:
 
