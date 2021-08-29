@@ -126,7 +126,7 @@ class Movie(Media):
             "genres": self.genres,
             "rating": self.rating,
             "runtime": self.runtime,
-            "studio": self.studio
+            "studio": self.studio,
         }
 
         return {k: v for k, v in default.items() if v is not None}
@@ -223,7 +223,7 @@ class Show(Media):
             "fanart": self.fanart,
             "genres": self.genres,
             "rating": self.rating,
-            "studio": self.studio
+            "studio": self.studio,
         }
 
         return {k: v for k, v in default.items() if v is not None}
