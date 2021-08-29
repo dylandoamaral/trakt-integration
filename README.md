@@ -1,25 +1,41 @@
-# Trakt Integration
+<h1 align="center">Trakt Integration</h1>
 
-[![HACS](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) 
-[![Release](https://img.shields.io/github/v/release/dylandoamaral/trakt-integration)](https://github.com/dylandoamaral/trakt-integration) 
-[![Last Commit](https://img.shields.io/github/last-commit/dylandoamaral/trakt-integration)](https://github.com/dylandoamaral/trakt-integration) 
-[![Donate Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow)](https://www.buymeacoffee.com/dylandoamaral)
+<p align="center">
+  <a href="https://github.com/custom-components/hacs">
+    <img src="https://img.shields.io/badge/HACS-Default-orange.svg" alt="HACS" />
+  </a> 
+  <a href="https://github.com/dylandoamaral/trakt-integration">
+    <img src="https://img.shields.io/github/v/release/dylandoamaral/trakt-integration" alt="Release" />
+  </a> 
+  <a href="https://github.com/dylandoamaral/trakt-integration">
+    <img src="https://img.shields.io/github/last-commit/dylandoamaral/trakt-integration" alt="Last Commit" />
+  </a> 
+  <a href="https://www.buymeacoffee.com/dylandoamaral">
+    <img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow" alt="Donate Coffee" />
+  </a>
+</p>
 
-View your Trakt calendar items in [Upcoming Media Cards](https://github.com/custom-cards/upcoming-media-card) on a Home Assistant dashboard.
+<p align="center">
+  View your Trakt calendar items in <a href="https://github.com/custom-cards/upcoming-media-card">Upcoming Media Cards</a> on a Home Assistant dashboard.
+</p>
 
-:warning: This is still an early release. It may not be very stable and it may have bugs.
-See the [Issues](https://github.com/dylandoamaral/trakt-integration/issues) page if you encounter a bug or have a feature request.
+<p align="center">
+  :warning: This is still an early release. It may not be stable and it may have bugs. :warning:<br />
+  See the <a href="https://github.com/dylandoamaral/trakt-integration/issues">Issues</a> page to report a bug or to add a feature request.
+</p>
 
-![Showcase Example](https://raw.githubusercontent.com/dylandoamaral/trakt-integration/main/images/showcase.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dylandoamaral/trakt-integration/main/images/showcase.png" alt="Showcase Example" />
+</p>
 
 -----
 
-## Requirements
+## Recomendations
 
-The following should be installed in Home Assistant to best use this integration:
+Having the following installed in Home Assistant will help best use this integration:
 - [Upcoming Media Cards](https://github.com/custom-cards/upcoming-media-card)
 
-## Installation
+## Installation 🏠
 
 Installation is a multi-step process. Follow each of the following steps.
 
@@ -35,7 +51,7 @@ This integration is available in [HACS](https://hacs.xyz/) (Home Assistant Commu
 - Press the **Install this repository in HACS** button
 - Press the **Install** button
 
-### 2. Update Configuration File
+### 2. Update Configuration File ⚙️
 
 The following shows all of the integration's default settings.
 Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configuration.yaml` file:
@@ -85,6 +101,8 @@ There are five sensors available under the `sensors` > `upcoming` array:
 There are two parameters for each sensor:
 - `days_to_fetch` should be a positive number for how many days to search
 - `max_medias` should be a positive number for how many items to grab
+
+#### Example 📊
 
 For example, adding only the following to `configuration.yaml` will create two sensors.
 One with the next 10 TV episodes in the next 30 days and another with the next 5 movies coming out in the next 45 days:
@@ -156,7 +174,7 @@ See the [Upcoming Media Card](https://github.com/custom-cards/upcoming-media-car
 
 -----
 
-## Additional Information
+## Additional Information ℹ️
 
 ### Why not use sensor.trakt ?
 
@@ -171,9 +189,9 @@ There is already another integration for Trakt, [sensor.trakt](https://github.co
 
 ### Feature Requests and Contributions
 
-Don't hesitate to [ask for features](https://github.com/dylandoamaral/trakt-integration/issues) or contribute your own [pull request](https://github.com/dylandoamaral/trakt-integration/pulls).
+Don't hesitate to [ask for features](https://github.com/dylandoamaral/trakt-integration/issues) or contribute your own [pull request](https://github.com/dylandoamaral/trakt-integration/pulls). ⭐
 
-### For Developers
+### For Developers 👨‍💻
 
 If you want to add a feature or fix a bug by yourself, follow these instructions:
 
