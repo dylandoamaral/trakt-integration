@@ -6,7 +6,6 @@ from homeassistant.helpers import config_validation as cv
 from .const import DOMAIN, LANGUAGE_CODES
 from .model.kind import TraktKind
 
-
 def build_config_schema():
     return vol.Schema(
         {DOMAIN: build_config_domain_schema()},
@@ -23,7 +22,6 @@ def build_config_domain_schema():
                 }
             ),
             vol.Required("language"): vol.In(LANGUAGE_CODES),
-            vol.Required("update_interval", default=30): cv.positive_int,
         }
     )
 

@@ -63,7 +63,6 @@ Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configurat
 ```yaml
 trakt_tv:
   language: en # Prefered language for movie/show title
-  update_interval: 30 # API fetching in minutes
   sensors:
     upcoming:
       show:
@@ -86,7 +85,6 @@ trakt_tv:
 #### Integration Settings
 
 - `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
-- `update_interval` should be a positive number in minutes
 
 #### Available Sensors
 

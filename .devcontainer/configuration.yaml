@@ -7,7 +7,6 @@ logger:
 
 trakt_tv:
   language: fr
-  update_interval: 1
   sensors:
     upcoming:
       show:
@@ -15,6 +14,5 @@ trakt_tv:
       movie:
         days_to_fetch: 90
         max_medias: 3
-
 # If you need to debug uncommment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 # debugpy:

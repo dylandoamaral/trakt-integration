@@ -1,7 +1,6 @@
 """The Trakt integration."""
 import asyncio
 import logging
-from datetime import timedelta
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
@@ -58,14 +57,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     api = TraktApi(async_get_clientsession(hass), session, entry, hass)
 
-    minutes = nested_get(hass.data, [DOMAIN, "update_interval"]) or 1
-
     coordinator = DataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
         name="trakt",
         update_method=api.retrieve_data,
-        update_interval=timedelta(minutes=minutes),
     )
 
     await coordinator.async_config_entry_first_refresh()
