@@ -112,7 +112,6 @@ One with the next 10 TV episodes in the next 30 days and another with the next 5
 ```yaml
 trakt_tv:
   language: en
-  update_interval: 30
   sensors:
     upcoming:
       show:
