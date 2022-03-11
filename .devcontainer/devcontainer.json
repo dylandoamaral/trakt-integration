@@ -1,28 +1,37 @@
-// See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-  "image": "ludeeus/container:integration-debian",
   "name": "TraktTV integration development",
+  "dockerFile": "./Dockerfile",
   "context": "..",
-  "appPort": ["9123:8123"],
-  "postCreateCommand": "container install",
+  "appPort": ["8123:8123"],
+  "postStartCommand": "hass -c /config",
   "extensions": [
-    "ms-python.python",
+    "aaron-bond.better-comments",
+    "coenraads.bracket-pair-colorizer-2",
+    "davidanson.vscode-markdownlint",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "github.copilot",
     "github.vscode-pull-request-github",
-    "ryanluker.vscode-coverage-gutters",
-    "ms-python.vscode-pylance"
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "redhat.vscode-yaml",
+    "yzhang.markdown-all-in-one"
   ],
   "settings": {
     "files.eol": "\n",
-    "editor.tabSize": 4,
-    "terminal.integrated.shell.linux": "/bin/bash",
-    "python.pythonPath": "/usr/bin/python3",
-    "python.analysis.autoSearchPaths": false,
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "python.formatting.provider": "black",
+    "editor.tabSize": 2,
+    "terminal.integrated.defaultProfile.linux": "zsh",
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "markdown.extension.toc.githubCompatibility": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "files.watcherExclude": {
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true,
+      "**/node_modules/**": true,
+      "**/.hg/store/**": true,
+      "**/.rpt2_cache/**": true
+    }
   }
 }

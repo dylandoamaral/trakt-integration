@@ -32,11 +32,12 @@
   The image above was generated using <a href="https://github.com/custom-cards/upcoming-media-card">Upcoming Media Card</a> and <a href="https://github.com/dylandoamaral/upcoming-media-card-modification">Upcoming Media Card modification</a>.
 </p>
 
-----
+---
 
 ## Recomendations 💡
 
 Having the following installed in Home Assistant will help best use this integration:
+
 - [Upcoming Media Card](https://github.com/custom-cards/upcoming-media-card)
 
 ## Installation 🏠
@@ -46,6 +47,7 @@ Installation is a multi-step process. Follow each of the following steps.
 ### 1. Add HACS Integration
 
 This integration is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store). Install it as follows:
+
 - In Home Assistant, go to HACS > Integrations
 - Press the **Explore & Add Repositories** button
 - Search for "Trakt"
@@ -94,6 +96,7 @@ This keeps you from having useless sensors that you don't need, such as the DVD 
 but you can still use it if you want to.
 
 There are five sensors available under the `sensors` > `upcoming` array:
+
 - `show` for [TV Shows](https://trakt.tv/calendars/my/shows/) (actually, episodes). Creates `sensor.trakt_upcoming_shows`
 - `new_show` for [New Shows](https://trakt.tv/calendars/my/new-shows/) (series premiers). Creates `sensor.trakt_upcoming_new_shows`
 - `premiere` for [Season Premieres](https://trakt.tv/calendars/my/premieres/). Creates `sensor.trakt_upcoming_premieres`
@@ -101,6 +104,7 @@ There are five sensors available under the `sensors` > `upcoming` array:
 - `dvd` for [DVD & Blu-ray](https://trakt.tv/calendars/my/dvd/) releases. Creates `sensor.trakt_upcoming_dvds`
 
 There are two parameters for each sensor:
+
 - `days_to_fetch` should be a positive number for how many days to search
 - `max_medias` should be a positive number for how many items to grab
 
@@ -132,6 +136,7 @@ Note: You will not see anything new in Home Assistant yet.
 ### 4. Prepare Trakt
 
 You have to provide a `client_id` and a `client_secret` to use this integration. Get these keys with the following:
+
 - Go to the [Trakt API Apps](https://trakt.tv/oauth/applications) page and press the **New application** button
 - Fill in the **Name** (required) and **Description** (optional) fields. These fields are just for your own reference
 - Fill in **Redirect uri** with one of the following
@@ -173,13 +178,14 @@ max: 10
 
 See the [Upcoming Media Card](https://github.com/custom-cards/upcoming-media-card) page for formatting and display options to add to your card.
 
------
+---
 
 ## Additional Information ℹ️
 
 ### Why not use sensor.trakt ?
 
 There is already another integration for Trakt, [sensor.trakt](https://github.com/custom-components/sensor.trakt). However, I decided to create my own integration for the following reasons:
+
 - The other integration is almost never updated
 - They haven't accepted my [pull request](https://github.com/custom-components/sensor.trakt/pull/58) for more than 3 months, so I modified it in my local environment to meet my needs
 - This integration provides more features than the old one
@@ -197,6 +203,6 @@ Don't hesitate to [ask for features](https://github.com/dylandoamaral/trakt-inte
 If you want to add a feature or fix a bug by yourself, follow these instructions:
 
 1. Use [Visual Studio Code](https://github.com/microsoft/vscode) and use [dev containers](https://github.com/microsoft/vscode-dev-containers)
-2. Run the `Run Home Assistant on port 9123`
+2. Run the `Run Home Assistant on port 8123`
 3. Add the trakt integration
 4. Start to develop a new feature
