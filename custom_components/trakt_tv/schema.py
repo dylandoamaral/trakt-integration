@@ -1,4 +1,3 @@
-from tkinter import N
 from typing import Any, Dict
 
 from homeassistant.helpers import config_validation as cv
