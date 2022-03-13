@@ -3,13 +3,13 @@
 <p align="center">
   <a href="https://github.com/custom-components/hacs">
     <img src="https://img.shields.io/badge/HACS-Default-orange.svg" alt="HACS" />
-  </a> 
+  </a>
   <a href="https://github.com/dylandoamaral/trakt-integration">
     <img src="https://img.shields.io/github/v/release/dylandoamaral/trakt-integration" alt="Release" />
-  </a> 
+  </a>
   <a href="https://github.com/dylandoamaral/trakt-integration">
     <img src="https://img.shields.io/github/last-commit/dylandoamaral/trakt-integration" alt="Last Commit" />
-  </a> 
+  </a>
   <a href="https://www.buymeacoffee.com/dylandoamaral">
     <img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow" alt="Donate Coffee" />
   </a>
@@ -203,6 +203,8 @@ Don't hesitate to [ask for features](https://github.com/dylandoamaral/trakt-inte
 If you want to add a feature or fix a bug by yourself, follow these instructions:
 
 1. Use [Visual Studio Code](https://github.com/microsoft/vscode) and use [dev containers](https://github.com/microsoft/vscode-dev-containers)
-2. Run the `Run Home Assistant on port 8123`
+2. In a browser open `localhost:8123`
 3. Add the trakt integration
 4. Start to develop a new feature
+
+:info: To restart home assistant use `make homeassistant`

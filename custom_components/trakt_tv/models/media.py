@@ -1,14 +1,11 @@
-import json
 from abc import ABC, abstractmethod, abstractstaticmethod
-from asyncio import gather
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import aiohttp
+from custom_components.trakt_tv.apis.tmdb import get_movie_data, get_show_data
 
-from ..const import TMDB_TOKEN, UPCOMING_DATA_FORMAT
+from ..const import UPCOMING_DATA_FORMAT
 
 
 @dataclass
@@ -115,25 +112,22 @@ class Movie(Media):
 
         :param language: The favorite language of the user
         """
-        host = "http://api.tmdb.org"
-        url = f"{host}/3/movie/{self.ids.tmdb}?api_key={TMDB_TOKEN}&language={language}"
-        async with aiohttp.request("GET", url) as response:
-            json = await response.json()
-            if title := json.get("title"):
-                self.name = title
-            if poster := json.get("poster_path"):
-                self.poster = f"https://image.tmdb.org/t/p/w500{poster}"
-            if fanart := json.get("backdrop_path"):
-                self.fanart = f"https://image.tmdb.org/t/p/w500{fanart}"
-            if genres := json.get("genres"):
-                self.genres = [genre["name"] for genre in genres]
-            if vote_average := json.get("vote_average"):
-                if vote_average != 0:
-                    self.rating = vote_average
-            if runtime := json.get("runtime"):
-                self.runtime = runtime
-            if production_companies := json.get("production_companies"):
-                self.studio = production_companies[0].get("name")
+        data = await get_movie_data(self.ids.tmdb, language)
+        if title := data.get("title"):
+            self.name = title
+        if poster := data.get("poster_path"):
+            self.poster = f"https://image.tmdb.org/t/p/w500{poster}"
+        if fanart := data.get("backdrop_path"):
+            self.fanart = f"https://image.tmdb.org/t/p/w500{fanart}"
+        if genres := data.get("genres"):
+            self.genres = [genre["name"] for genre in genres]
+        if vote_average := data.get("vote_average"):
+            if vote_average != 0:
+                self.rating = vote_average
+        if runtime := data.get("runtime"):
+            self.runtime = runtime
+        if production_companies := data.get("production_companies"):
+            self.studio = production_companies[0].get("name")
 
     def to_upcoming(self) -> Dict[str, Any]:
         """
@@ -201,29 +195,26 @@ class Show(Media):
 
         :param language: The favorite language of the user
         """
-        host = "http://api.tmdb.org"
-        url = f"{host}/3/tv/{self.ids.tmdb}?api_key={TMDB_TOKEN}&language={language}"
-        async with aiohttp.request("GET", url) as response:
-            json = await response.json()
-            if title := json.get("title"):
-                self.name = title
-            season = [
-                season
-                for season in json.get("seasons", [])
-                if season["season_number"] == self.episode.season
-            ]
-            if season:
-                poster = season[0]["poster_path"]
-                self.poster = f"https://image.tmdb.org/t/p/w500{poster}"
-            if fanart := json.get("backdrop_path"):
-                self.fanart = f"https://image.tmdb.org/t/p/w500{fanart}"
-            if genres := json.get("genres"):
-                self.genres = [genre["name"] for genre in genres]
-            if vote_average := json.get("vote_average"):
-                if vote_average != 0:
-                    self.rating = vote_average
-            if networks := json.get("networks"):
-                self.studio = networks[0].get("name")
+        data = await get_show_data(self.ids.tmdb, language)
+        if title := data.get("title"):
+            self.name = title
+        season = [
+            season
+            for season in data.get("seasons", [])
+            if season["season_number"] == self.episode.season
+        ]
+        if season:
+            poster = season[0]["poster_path"]
+            self.poster = f"https://image.tmdb.org/t/p/w500{poster}"
+        if fanart := data.get("backdrop_path"):
+            self.fanart = f"https://image.tmdb.org/t/p/w500{fanart}"
+        if genres := data.get("genres"):
+            self.genres = [genre["name"] for genre in genres]
+        if vote_average := data.get("vote_average"):
+            if vote_average != 0:
+                self.rating = vote_average
+        if networks := data.get("networks"):
+            self.studio = networks[0].get("name")
 
     def to_upcoming(self) -> Dict[str, Any]:
         """

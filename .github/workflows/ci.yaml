@@ -2,9 +2,9 @@ name: Trakt Integration Continuous Integration
 
 on:
   push:
-    branches: ['*']
+    branches: ["*"]
   pull_request:
-    branches: ['*']
+    branches: ["*"]
 
 jobs:
   build:
@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - name: Install requirements
+        run: pip install -r requirements.txt
       - name: Check linting
-        run: |
-          pip install -r requirements.txt
-          make check
+        run: make check
+      - name: Run test
+        run: make test

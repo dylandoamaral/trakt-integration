@@ -12,7 +12,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
 )
 
 from .const import DOMAIN, OAUTH2_AUTHORIZE, OAUTH2_TOKEN
-from .model.kind import TraktKind
+from .models.kind import TraktKind
 
 
 class OAuth2FlowHandler(AbstractOAuth2FlowHandler, domain=DOMAIN):

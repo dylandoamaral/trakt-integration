@@ -3,7 +3,7 @@
   "dockerFile": "./Dockerfile",
   "context": "..",
   "appPort": ["8123:8123"],
-  "postStartCommand": "hass -c /config",
+  "postStartCommand": "make homeassistant",
   "extensions": [
     "aaron-bond.better-comments",
     "coenraads.bracket-pair-colorizer-2",

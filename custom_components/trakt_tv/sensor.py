@@ -4,9 +4,9 @@ from datetime import timedelta
 
 from homeassistant.helpers.entity import Entity
 
+from .configuration import Configuration
 from .const import DOMAIN
-from .model.kind import TraktKind
-from .utils import should_compute_identifier
+from .models.kind import TraktKind
 
 LOGGER = logging.getLogger(__name__)
 
@@ -16,11 +16,13 @@ SCAN_INTERVAL = timedelta(minutes=5)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN]["instances"]["coordinator"]
+    configuration = Configuration(hass.data)
 
     sensors = []
 
     for trakt_kind in TraktKind:
-        if should_compute_identifier(hass, trakt_kind.value.identifier):
+        identifier = trakt_kind.value.identifier
+        if configuration.identifier_exists(identifier):
             sensor = TraktUpcomingSensor(hass, config_entry, coordinator, trakt_kind)
             sensors.append(sensor)
 
