@@ -2,23 +2,20 @@
 import json
 import logging
 import math
-from asyncio import gather, run_coroutine_threadsafe
+from asyncio import gather
 from datetime import datetime, timedelta
 
 from aiohttp import ClientResponse, ClientSession
 from async_timeout import timeout
-from homeassistant import core
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_CLIENT_ID
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from .const import API_HOST, DOMAIN
-from .model.kind import TraktKind
-from .model.media import Medias
-from .utils import nested_get, should_compute_identifier
+from custom_components.trakt_tv.utils import compute_calendar_args, split
+
+from ..configuration import Configuration
+from ..const import API_HOST, DOMAIN
+from ..models.kind import TraktKind
+from ..models.media import Medias
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +27,6 @@ class TraktApi:
         self,
         websession: ClientSession,
         oauth_session: OAuth2Session,
-        entry: ConfigEntry,
         hass: HomeAssistant,
     ):
         """Initialize TraktTV auth."""
@@ -65,10 +61,10 @@ class TraktApi:
             headers=headers,
         )
 
-    async def get_calendar(self, path, from_date, nb_days):
+    async def fetch_calendar(self, path, from_date, nb_days):
         return await self.request("get", f"calendars/{path}/{from_date}/{nb_days}")
 
-    async def fetch_calendar(self, trakt_kind: TraktKind):
+    async def fetch_upcoming(self, trakt_kind: TraktKind):
         """
         Fetch the calendar of the user trakt account based on the trak_type containing
         the calendar type.
@@ -78,61 +74,31 @@ class TraktApi:
 
         :param trak_type: The TraktKind describing which calendar we should request
         """
-        if not should_compute_identifier(self.hass, trakt_kind.value.identifier):
+        configuration = Configuration(data=self.hass.data)
+        path = trakt_kind.value.path
+        identifier = trakt_kind.value.identifier
+
+        if not configuration.identifier_exists(identifier):
             return None
 
-        days = (
-            nested_get(
-                self.hass.data,
-                [
-                    DOMAIN,
-                    "configuration",
-                    "sensors",
-                    "upcoming",
-                    trakt_kind.value.identifier,
-                    "days_to_fetch",
-                ],
-            )
-            or 30
-        )
+        configuration = Configuration(data=self.hass.data)
+        days_to_fetch = configuration.get_days_to_fetch(identifier)
+        language = configuration.get_language()
 
-        language = (
-            nested_get(
-                self.hass.data,
-                [DOMAIN, "configuration", "language"],
-            )
-            or "en"
-        )
-
-        max_fetch_days = 33
-        total_partition = math.ceil(days / max_fetch_days)
-        partition_results = []
-        for partition in range(0, total_partition):
-            from_date = datetime.now() + timedelta(partition * max_fetch_days)
-            days = (
-                max_fetch_days
-                if partition != total_partition - 1
-                else days % max_fetch_days
-            )
-            partition_results.append((from_date.strftime("%Y-%m-%d"), days))
+        calendar_args = compute_calendar_args(days_to_fetch, 33)
 
         responses = await gather(
-            *[
-                self.get_calendar(trakt_kind.value.path, result[0], result[1])
-                for result in partition_results
-            ]
+            *[self.fetch_calendar(path, args[0], args[1]) for args in calendar_args]
         )
         texts = await gather(*[response.text() for response in responses])
         data = [media for medias in texts for media in json.loads(medias)]
         medias = [trakt_kind.value.model.from_trakt(movie) for movie in data]
         await gather(*[media.get_more_information(language) for media in medias])
+
         return trakt_kind, Medias(medias)
 
     async def retrieve_data(self):
         async with timeout(60):
-            calendars = await gather(
-                *[self.fetch_calendar(trakt_kind) for trakt_kind in TraktKind]
-            )
-            data = [calendar for calendar in calendars if calendar]
-            data = {trakt_kind: medias for trakt_kind, medias in data}
-            return data
+            data = await gather(*[self.fetch_upcoming(kind) for kind in TraktKind])
+            data = filter(lambda x: x is not None, data)
+            return {trakt_kind: medias for trakt_kind, medias in data}

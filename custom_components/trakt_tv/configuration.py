@@ -1,39 +1,32 @@
-import logging
+from dataclasses import dataclass
+from typing import Any, Dict
 
-import voluptuous as vol
-from homeassistant.helpers import config_validation as cv
-
-from .const import DOMAIN, LANGUAGE_CODES
-from .model.kind import TraktKind
+from custom_components.trakt_tv.const import DOMAIN
 
 
-def build_config_schema():
-    return vol.Schema(
-        {DOMAIN: build_config_domain_schema()},
-        extra=vol.ALLOW_EXTRA,
-    )
+@dataclass
+class Configuration:
+    data: Dict[str, Any]
 
+    @property
+    def conf(self) -> Dict[str, Any]:
+        return self.data[DOMAIN]["configuration"]
 
-def build_config_domain_schema():
-    return vol.Schema(
-        {
-            "sensors": vol.Schema(
-                {
-                    vol.Required("upcoming"): build_config_upcoming_schema(),
-                }
-            ),
-            vol.Required("language"): vol.In(LANGUAGE_CODES),
-        }
-    )
+    def identifier_exists(self, identifier: str) -> bool:
+        try:
+            self.conf["sensors"]["upcoming"][identifier]
+            return True
+        except KeyError:
+            return False
 
+    def get_days_to_fetch(self, identifier: str) -> int:
+        try:
+            return self.conf["sensors"]["upcoming"][identifier]["days_to_fetch"]
+        except KeyError:
+            return 30
 
-def build_config_upcoming_schema():
-    subschemas = {}
-    for trakt_kind in TraktKind:
-        subschemas[trakt_kind.value.identifier] = vol.Schema(
-            {
-                vol.Required("days_to_fetch", default=90): cv.positive_int,
-                vol.Required("max_medias", default=3): cv.positive_int,
-            }
-        )
-    return vol.Schema(subschemas)
+    def get_language(self) -> int:
+        try:
+            return self.conf["language"]
+        except KeyError:
+            return "en"
