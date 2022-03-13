@@ -4,6 +4,7 @@
   "context": "..",
   "appPort": ["8123:8123"],
   "postStartCommand": "make homeassistant",
+  "onCreateCommand": "pip install -r requirements",
   "extensions": [
     "aaron-bond.better-comments",
     "coenraads.bracket-pair-colorizer-2",

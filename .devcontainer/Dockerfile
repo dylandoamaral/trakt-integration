@@ -21,6 +21,3 @@ RUN apt-get install -y python3 \
     && ln -sf "/workspaces/trakt-integration/.devcontainer/configuration.yaml" /config/configuration.yaml \
     && ln -sf "/workspaces/trakt-integration/.devcontainer/ui-lovelace.yaml" /config/ui-lovelace.yaml \
     && ln -sf "/workspaces/trakt-integration/custom_components" /config/custom_components
-
-# Install requirements.
-RUN pip install -r requirements
