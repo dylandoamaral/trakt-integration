@@ -68,7 +68,7 @@ class TraktUpcomingSensor(Entity):
     def data(self):
         if self.medias:
             max_medias = self.configuration["max_medias"]
-            return self.medias.to_upcoming()[0 : max_medias + 1]
+            return self.medias.to_homeassistant()[0 : max_medias + 1]
         return []
 
     @property
@@ -128,7 +128,7 @@ class TraktRecommendationSensor(Entity):
     @property
     def data(self):
         if self.medias:
-            return self.medias.to_upcoming()
+            return self.medias.to_homeassistant()
         return []
 
     @property

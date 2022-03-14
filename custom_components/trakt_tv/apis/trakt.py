@@ -14,7 +14,7 @@ from custom_components.trakt_tv.utils import compute_calendar_args
 from ..configuration import Configuration
 from ..const import API_HOST, DOMAIN
 from ..models.kind import BASIC_KINDS, TraktKind
-from ..models.media import Medias
+from ..models.media import Medias, UpcomingMedias
 
 LOGGER = logging.getLogger(__name__)
 
@@ -92,13 +92,11 @@ class TraktApi:
         data = await gather(*[response.text() for response in responses])
         raw_medias = [media for medias in data for media in json.loads(medias)]
         medias = [
-            trakt_kind.value.model.from_upcoming_trakt(media) for media in raw_medias
+            trakt_kind.value.upcoming_model.from_trakt(media) for media in raw_medias
         ]
-        augmented_medias = gather(
-            *[media.get_more_information(language) for media in medias]
-        )
+        await gather(*[media.get_more_information(language) for media in medias])
 
-        return trakt_kind, Medias(augmented_medias)
+        return trakt_kind, UpcomingMedias(medias)
 
     async def fetch_upcomings(self):
         data = await gather(*[self.fetch_upcoming(kind) for kind in TraktKind])
@@ -127,19 +125,15 @@ class TraktApi:
         for trakt_kind, payload in zip(BASIC_KINDS, data):
             raw_medias = json.loads(payload)
             medias = [
-                trakt_kind.value.model.from_recommendation_trakt(media)
+                trakt_kind.value.model.from_trakt(media)
                 for media in raw_medias
             ]
-            augmented_medias = gather(
-                *[media.get_more_information(language) for media in medias]
-            )
-            res[trakt_kind] = Medias(augmented_medias)
+            await gather(*[media.get_more_information(language) for media in medias])
+            res[trakt_kind] = Medias(medias)
         return res
 
     async def retrieve_data(self):
         async with timeout(60):
-            #titles = ["upcoming", "recommendation"]
-            #data = await gather(*[self.fetch_upcomings(), self.fetch_recommendations()])
-            #return {title: medias for title, medias in zip(titles, data)}
-            data = await self.fetch_upcomings()
-            return {"upcoming": data}
+            titles = ["upcoming", "recommendation"]
+            data = await gather(*[self.fetch_upcomings(), self.fetch_recommendations()])
+            return {title: medias for title, medias in zip(titles, data)}
