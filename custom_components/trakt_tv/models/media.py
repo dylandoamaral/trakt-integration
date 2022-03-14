@@ -35,13 +35,19 @@ class Identifiers:
 @dataclass
 class Media(ABC):
     name: str
-    released: datetime
     ids: Identifiers
+    released: Optional[datetime] = None
 
     @abstractstaticmethod
-    def from_trakt(data) -> "Media":
+    def from_upcoming_trakt(data) -> "Media":
         """
-        Create a model from trakt api.
+        Create a model from upcoming trakt api.
+        """
+
+    @abstractstaticmethod
+    def from_recommendation_trakt(data) -> "Media":
+        """
+        Create a model from upcoming trakt api.
         """
 
     @abstractmethod
@@ -94,7 +100,7 @@ class Movie(Media):
     studio: Optional[str] = None
 
     @staticmethod
-    def from_trakt(data) -> "Movie":
+    def from_upcoming_trakt(data) -> "Movie":
         """
         Create a Movie from trakt api.
         """
@@ -103,6 +109,18 @@ class Movie(Media):
         return Movie(
             name=movie["title"],
             released=datetime.fromisoformat(data["released"]),
+            ids=Identifiers.from_trakt(movie),
+        )
+
+    @staticmethod
+    def from_recommendation_trakt(data) -> "Movie":
+        """
+        Create a Movie from trakt api.
+        """
+        movie = data
+
+        return Movie(
+            name=movie["title"],
             ids=Identifiers.from_trakt(movie),
         )
 
@@ -168,7 +186,7 @@ class Episode:
 
 @dataclass
 class Show(Media):
-    episode: Episode
+    episode: Optional[Episode] = None
     poster: Optional[str] = None
     fanart: Optional[str] = None
     genres: List[str] = field(default_factory=list)
@@ -176,7 +194,7 @@ class Show(Media):
     studio: Optional[str] = None
 
     @staticmethod
-    def from_trakt(data) -> "Show":
+    def from_upcoming_trakt(data) -> "Show":
         """
         Create a Show from trakt api.
         """
@@ -187,6 +205,18 @@ class Show(Media):
             released=datetime.strptime(data["first_aired"], UPCOMING_DATA_FORMAT),
             ids=Identifiers.from_trakt(show),
             episode=Episode.from_trakt(data),
+        )
+
+    @staticmethod
+    def from_recommendation_trakt(data) -> "Show":
+        """
+        Create a Show from trakt api.
+        """
+        show = data
+
+        return Show(
+            name=show["title"],
+            ids=Identifiers.from_trakt(show),
         )
 
     async def get_more_information(self, language):
@@ -216,6 +246,18 @@ class Show(Media):
         if networks := data.get("networks"):
             self.studio = networks[0].get("name")
 
+    def season_number(self) -> Optional[str]:
+        if not self.episode:
+            return None
+
+        season = self.episode.season
+        season = season if season >= 10 else f"0{season}"
+
+        episode = self.episode.number
+        episode = episode if episode >= 10 else f"0{episode}"
+
+        return f"S{season}E{episode}"
+
     def to_upcoming(self) -> Dict[str, Any]:
         """
         Convert the Show to upcoming data.
@@ -223,16 +265,10 @@ class Show(Media):
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        season = self.episode.season
-        season = season if season >= 10 else f"0{season}"
-
-        episode = self.episode.number
-        episode = episode if episode >= 10 else f"0{episode}"
-
         default = {
             **self.common_upcoming_information(),
             "episode": self.episode.title,
-            "number": f"S{season}E{episode}",
+            "number": self.season_number(),
         }
 
         return default
@@ -260,6 +296,6 @@ class Medias:
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        medias = sorted(self.items, key=lambda media: media.released)
+        medias = sorted(self.items, key=lambda media: media.released or media.title)
         medias = [media.to_upcoming() for media in medias]
         return [Medias.first_item()] + medias

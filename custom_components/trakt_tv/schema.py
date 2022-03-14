@@ -4,7 +4,7 @@ from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES
-from .models.kind import TraktKind
+from .models.kind import BASIC_KINDS, TraktKind
 
 
 def dictionary_to_schema(
@@ -32,6 +32,7 @@ def domain_schema() -> Schema:
 def sensors_schema() -> Dict[str, Any]:
     return {
         Required("upcoming"): upcoming_schema(),
+        Required("recommendation"): recommendation_schema(),
     }
 
 
@@ -40,6 +41,16 @@ def upcoming_schema() -> Dict[str, Any]:
     for trakt_kind in TraktKind:
         subschemas[trakt_kind.value.identifier] = {
             Required("days_to_fetch", default=90): cv.positive_int,
+            Required("max_medias", default=3): cv.positive_int,
+        }
+
+    return subschemas
+
+
+def recommendation_schema() -> Dict[str, Any]:
+    subschemas = {}
+    for trakt_kind in BASIC_KINDS:
+        subschemas[trakt_kind.value.identifier] = {
             Required("max_medias", default=3): cv.positive_int,
         }
 

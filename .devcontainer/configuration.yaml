@@ -14,3 +14,6 @@ trakt_tv:
       movie:
         days_to_fetch: 90
         max_medias: 3
+    recommendation:
+      show:
+        max_medias: 3
