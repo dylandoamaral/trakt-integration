@@ -95,6 +95,10 @@ The settings that you include in the `configuration.yaml` file determines which 
 This keeps you from having useless sensors that you don't need, such as the DVD sensor which will likely not fetch anything from the Trakt API,
 but you can still use it if you want to.
 
+##### Upcoming sensors
+
+Upcoming sensors are sensors giving the next anticipated movies or shows from your watch list.
+
 There are five sensors available under the `sensors` > `upcoming` array:
 
 - `show` for [TV Shows](https://trakt.tv/calendars/my/shows/) (actually, episodes). Creates `sensor.trakt_upcoming_shows`
@@ -106,6 +110,19 @@ There are five sensors available under the `sensors` > `upcoming` array:
 There are two parameters for each sensor:
 
 - `days_to_fetch` should be a positive number for how many days to search
+- `max_medias` should be a positive number for how many items to grab
+
+##### Recommendation sensors
+
+Recommendation sensors are sensors giving media that you may like.
+
+There are five sensors available under the `sensors` > `recommendation` array:
+
+- `show` for [TV Shows](https://trakt.tv/calendars/my/shows/) (actually, episodes). Creates `sensor.trakt_upcoming_shows`
+- `movie` for [Movies](https://trakt.tv/calendars/my/movies/) premieres. Creates `sensor.trakt_upcoming_movies`
+
+There are one parameter for each sensor:
+
 - `max_medias` should be a positive number for how many items to grab
 
 #### Example
@@ -124,6 +141,11 @@ trakt_tv:
       movie:
         days_to_fetch: 45
         max_medias: 5
+    recommendation:
+      show:
+        max_medias: 3
+      movie:
+        max_medias: 3
 ```
 
 ### 3. Restart Home Assistant
@@ -192,7 +214,6 @@ There is already another integration for Trakt, [sensor.trakt](https://github.co
   - Fetch more than 33 days (the single-query limitation on Trakt)
   - Have both the Movies and TV Shows calendars at the same time
   - Use other Trakt calendars such as Premieres, New Shows, and DVD & Blu-ray releases
-- This integration doesn't depends to any other library (even though I would like to use [pydantic](https://pydantic-docs.helpmanual.io/) so much, ARGHHH!)
 
 ### Feature Requests and Contributions
 
