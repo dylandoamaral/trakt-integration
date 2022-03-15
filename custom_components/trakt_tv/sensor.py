@@ -134,7 +134,7 @@ class TraktRecommendationSensor(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return max([len(self.data) - 1, 0])
+        return max([len(self.data), 0])
 
     @property
     def icon(self):
