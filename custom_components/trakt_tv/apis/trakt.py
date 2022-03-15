@@ -124,10 +124,7 @@ class TraktApi:
         res = {}
         for trakt_kind, payload in zip(BASIC_KINDS, data):
             raw_medias = json.loads(payload)
-            medias = [
-                trakt_kind.value.model.from_trakt(media)
-                for media in raw_medias
-            ]
+            medias = [trakt_kind.value.model.from_trakt(media) for media in raw_medias]
             await gather(*[media.get_more_information(language) for media in medias])
             res[trakt_kind] = Medias(medias)
         return res

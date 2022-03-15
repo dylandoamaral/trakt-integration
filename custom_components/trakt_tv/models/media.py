@@ -76,6 +76,7 @@ class Media(ABC):
         :param language: The favorite language of the user
         """
 
+
 @dataclass
 class Movie(Media):
     """
@@ -145,7 +146,7 @@ class UpcomingMovie(Movie):
     An upcoming movie
     """
 
-    released: Optional[datetime] = None # This one is actually mandatory
+    released: Optional[datetime] = None  # This one is actually mandatory
 
     @staticmethod
     def from_trakt(data) -> "UpcomingMovie":
@@ -174,6 +175,7 @@ class UpcomingMovie(Movie):
         }
 
         return default
+
 
 @dataclass
 class Episode:
@@ -246,16 +248,15 @@ class Show(Media):
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        default = {
-            **self.common_information()
-        }
+        default = {**self.common_information()}
 
         return default
 
+
 @dataclass
 class UpcomingShow(Show):
-    episode: Optional[Episode] = None # This one is actually mandatory
-    released: Optional[datetime] = None # This one is actually mandatory
+    episode: Optional[Episode] = None  # This one is actually mandatory
+    released: Optional[datetime] = None  # This one is actually mandatory
 
     @staticmethod
     def from_trakt(data) -> "UpcomingShow":
@@ -330,6 +331,7 @@ class UpcomingMedias:
         medias = sorted(self.items, key=lambda media: media.released)
         medias = [media.to_homeassistant() for media in medias]
         return [UpcomingMedias.first_item()] + medias
+
 
 @dataclass
 class Medias:

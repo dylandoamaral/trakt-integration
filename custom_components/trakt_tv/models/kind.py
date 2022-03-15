@@ -15,8 +15,12 @@ class CalendarInformation:
 
 class TraktKind(Enum):
     SHOW = CalendarInformation("show", "Shows", "shows", Show, UpcomingShow)
-    NEW_SHOW = CalendarInformation("new_show", "New Shows", "shows/new", Show, UpcomingShow)
-    PREMIERE = CalendarInformation("premiere", "Premieres", "shows/premieres", Show, UpcomingShow)
+    NEW_SHOW = CalendarInformation(
+        "new_show", "New Shows", "shows/new", Show, UpcomingShow
+    )
+    PREMIERE = CalendarInformation(
+        "premiere", "Premieres", "shows/premieres", Show, UpcomingShow
+    )
     MOVIE = CalendarInformation("movie", "Movies", "movies", Movie, UpcomingMovie)
     DVD = CalendarInformation("dvd", "DVD", "dvd", Movie, UpcomingMovie)
 
