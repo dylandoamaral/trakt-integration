@@ -41,7 +41,6 @@ jobs:
       - name: Create the release
         uses: softprops/action-gh-release@v1
         with:
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
           name: "Release v${{ env.RELEASE_VERSION }}"
           body: ${{ steps.release.outputs.RELEASE_BODY }}
         env:
