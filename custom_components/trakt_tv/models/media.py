@@ -60,7 +60,6 @@ class Media(ABC):
         """
         default = {
             "title": self.name,
-            "release": "$day, $date $time",
             "poster": self.poster,
             "fanart": self.fanart,
             "genres": self.genres,
@@ -170,6 +169,7 @@ class UpcomingMovie(Movie):
         """
         default = {
             **super().to_homeassistant(),
+            "release": "$day, $date $time",
             "airdate": self.released.isoformat() + "Z",
         }
 
@@ -298,6 +298,7 @@ class UpcomingShow(Show):
             **super().to_homeassistant(),
             "episode": self.episode.title,
             "number": f"S{season}E{episode}",
+            "release": "$day, $date $time",
             "airdate": self.released.isoformat() + "Z",
         }
 
