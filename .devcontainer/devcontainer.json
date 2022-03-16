@@ -3,7 +3,6 @@
   "dockerFile": "./Dockerfile",
   "context": "..",
   "appPort": ["8123:8123"],
-  "postStartCommand": "make homeassistant",
   "onCreateCommand": "pip install -r requirements",
   "extensions": [
     "aaron-bond.better-comments",

@@ -22,9 +22,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     for trakt_kind in TraktKind:
         identifier = trakt_kind.value.identifier
-        if configuration.upcoming_identifier_exists(identifier):
-            sensor = TraktUpcomingSensor(hass, config_entry, coordinator, trakt_kind)
-            sensors.append(sensor)
+        all_medias_possibilities = [False, True]
+        for all_medias in all_medias_possibilities:
+            if configuration.upcoming_identifier_exists(identifier, all_medias):
+                sensor = TraktUpcomingSensor(
+                    hass, config_entry, coordinator, trakt_kind, all_medias=all_medias
+                )
+                sensors.append(sensor)
         if (
             configuration.recommendation_identifier_exists(identifier)
             and trakt_kind in BASIC_KINDS
@@ -40,29 +44,35 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class TraktUpcomingSensor(Entity):
     """Representation of an upcoming sensor."""
 
-    def __init__(self, hass, config_entry, coordinator, trakt_kind):
+    def __init__(self, hass, config_entry, coordinator, trakt_kind, all_medias: bool):
         """Initialize the sensor."""
         self.hass = hass
         self.config_entry = config_entry
         self.coordinator = coordinator
         self.trakt_kind = trakt_kind
+        self.all_medias = all_medias
+
+    @property
+    def source(self):
+        return "all_upcoming" if self.all_medias else "upcoming"
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Trakt Upcoming {self.trakt_kind.value.name}"
+        prefix = "All " if self.all_medias else ""
+        return f"Trakt {prefix}Upcoming {self.trakt_kind.value.name}"
 
     @property
     def medias(self):
         if self.coordinator.data:
-            return self.coordinator.data.get("upcoming", {}).get(self.trakt_kind, None)
+            return self.coordinator.data.get(self.source, {}).get(self.trakt_kind, None)
         return None
 
     @property
     def configuration(self):
         identifier = self.trakt_kind.value.identifier
         data = self.hass.data[DOMAIN]
-        return data["configuration"]["sensors"]["upcoming"][identifier]
+        return data["configuration"]["sensors"][self.source][identifier]
 
     @property
     def data(self):

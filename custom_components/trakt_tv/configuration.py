@@ -12,34 +12,49 @@ class Configuration:
     def conf(self) -> Dict[str, Any]:
         return self.data[DOMAIN]["configuration"]
 
-    def upcoming_identifier_exists(self, identifier: str) -> bool:
-        try:
-            self.conf["sensors"]["upcoming"][identifier]
-            return True
-        except KeyError:
-            return False
-
-    def get_upcoming_days_to_fetch(self, identifier: str) -> int:
-        try:
-            return self.conf["sensors"]["upcoming"][identifier]["days_to_fetch"]
-        except KeyError:
-            return 30
-
     def get_language(self) -> str:
         try:
             return self.conf["language"]
         except KeyError:
             return "en"
 
-    def recommendation_identifier_exists(self, identifier: str) -> bool:
+    def identifier_exists(self, identifier: str, source: str) -> bool:
         try:
-            self.conf["sensors"]["recommendation"][identifier]
+            self.conf["sensors"][source][identifier]
             return True
         except KeyError:
             return False
 
-    def get_recommendation_max_medias(self, identifier: str) -> int:
+    def get_days_to_fetch(self, identifier: str, source: str) -> int:
         try:
-            return self.conf["sensors"]["recommendation"][identifier]["max_medias"]
+            return self.conf["sensors"][source][identifier]["days_to_fetch"]
+        except KeyError:
+            return 30
+
+    def get_max_medias(self, identifier: str, source: str) -> int:
+        try:
+            return self.conf["sensors"][source][identifier]["max_medias"]
         except KeyError:
             return 3
+
+    def upcoming_identifier_exists(
+        self, identifier: str, all_medias: bool = False
+    ) -> bool:
+        source = "all_upcoming" if all_medias else "upcoming"
+        return self.identifier_exists(identifier, source)
+
+    def get_upcoming_days_to_fetch(
+        self, identifier: str, all_medias: bool = False
+    ) -> int:
+        source = "all_upcoming" if all_medias else "upcoming"
+        return self.get_days_to_fetch(identifier, source)
+
+    def get_upcoming_max_medias(self, identifier: str, all_medias: bool = False) -> int:
+        source = "all_upcoming" if all_medias else "upcoming"
+        return self.get_max_medias(identifier, source)
+
+    def recommendation_identifier_exists(self, identifier: str) -> bool:
+        return self.identifier_exists(identifier, "recommendation")
+
+    def get_recommendation_max_medias(self, identifier: str) -> int:
+        return self.get_max_medias(identifier, "recommendation")

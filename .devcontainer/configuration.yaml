@@ -12,8 +12,11 @@ trakt_tv:
       show:
         days_to_fetch: 60
       movie:
-        days_to_fetch: 90
+        days_to_fetch: 15
         max_medias: 3
+    all_upcoming:
+      show:
+        max_medias: 5
     recommendation:
       movie:
         max_medias: 5
