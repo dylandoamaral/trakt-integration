@@ -112,6 +112,23 @@ There are two parameters for each sensor:
 - `days_to_fetch` should be a positive number for how many days to search
 - `max_medias` should be a positive number for how many items to grab
 
+##### All Upcoming sensors
+
+All Upcoming sensors are sensors giving the next anticipated movies or shows.
+
+There are five sensors available under the `sensors` > `all_upcoming` array:
+
+- `show` for [TV Shows](https://trakt.tv/calendars/all/shows/) (actually, episodes). Creates `sensor.trakt_all_upcoming_shows`
+- `new_show` for [New Shows](https://trakt.tv/calendars/all/new-shows/) (series premiers). Creates `sensor.trakt_all_upcoming_new_shows`
+- `premiere` for [Season Premieres](https://trakt.tv/calendars/all/premieres/). Creates `sensor.trakt_all_upcoming_premieres`
+- `movie` for [Movies](https://trakt.tv/calendars/all/movies/) premieres. Creates `sensor.trakt_all_upcoming_movies`
+- `dvd` for [DVD & Blu-ray](https://trakt.tv/calendars/all/dvd/) releases. Creates `sensor.trakt_all_upcoming_dvds`
+
+There are two parameters for each sensor:
+
+- `days_to_fetch` should be a positive number for how many days to search
+- `max_medias` should be a positive number for how many items to grab
+
 ##### Recommendation sensors
 
 Recommendation sensors are sensors giving media that you may like.

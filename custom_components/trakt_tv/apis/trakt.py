@@ -2,7 +2,6 @@
 import json
 import logging
 from asyncio import gather
-from typing import Any, Dict, List
 
 from aiohttp import ClientResponse, ClientSession
 from async_timeout import timeout
@@ -60,10 +59,15 @@ class TraktApi:
             headers=headers,
         )
 
-    async def fetch_calendar(self, path: str, from_date: str, nb_days: int):
-        return await self.request("get", f"calendars/my/{path}/{from_date}/{nb_days}")
+    async def fetch_calendar(
+        self, path: str, from_date: str, nb_days: int, all_medias: bool
+    ):
+        root = "all" if all_medias else "my"
+        return await self.request(
+            "get", f"calendars/{root}/{path}/{from_date}/{nb_days}"
+        )
 
-    async def fetch_upcoming(self, trakt_kind: TraktKind):
+    async def fetch_upcoming(self, trakt_kind: TraktKind, all_medias: bool):
         """
         Fetch the calendar of the user trakt account based on the trak_type containing
         the calendar type.
@@ -77,29 +81,37 @@ class TraktApi:
         path = trakt_kind.value.path
         identifier = trakt_kind.value.identifier
 
-        if not configuration.upcoming_identifier_exists(identifier):
+        if not configuration.upcoming_identifier_exists(identifier, all_medias):
             return None
 
         configuration = Configuration(data=self.hass.data)
-        days_to_fetch = configuration.get_upcoming_days_to_fetch(identifier)
+        days_to_fetch = configuration.get_upcoming_days_to_fetch(identifier, all_medias)
+        max_medias = configuration.get_upcoming_max_medias(identifier, all_medias)
         language = configuration.get_language()
 
         calendar_args = compute_calendar_args(days_to_fetch, 33)
 
         responses = await gather(
-            *[self.fetch_calendar(path, args[0], args[1]) for args in calendar_args]
+            *[
+                self.fetch_calendar(path, args[0], args[1], all_medias)
+                for args in calendar_args
+            ]
         )
         data = await gather(*[response.text() for response in responses])
         raw_medias = [media for medias in data for media in json.loads(medias)]
+        raw_medias = raw_medias[0:max_medias]
         medias = [
             trakt_kind.value.upcoming_model.from_trakt(media) for media in raw_medias
         ]
+
         await gather(*[media.get_more_information(language) for media in medias])
 
         return trakt_kind, UpcomingMedias(medias)
 
-    async def fetch_upcomings(self):
-        data = await gather(*[self.fetch_upcoming(kind) for kind in TraktKind])
+    async def fetch_upcomings(self, all_medias: bool):
+        data = await gather(
+            *[self.fetch_upcoming(kind, all_medias) for kind in TraktKind]
+        )
         data = filter(lambda x: x is not None, data)
         return {trakt_kind: medias for trakt_kind, medias in data}
 
@@ -131,6 +143,12 @@ class TraktApi:
 
     async def retrieve_data(self):
         async with timeout(60):
-            titles = ["upcoming", "recommendation"]
-            data = await gather(*[self.fetch_upcomings(), self.fetch_recommendations()])
+            titles = ["upcoming", "all_upcoming", "recommendation"]
+            data = await gather(
+                *[
+                    self.fetch_upcomings(all_medias=False),
+                    self.fetch_upcomings(all_medias=True),
+                    self.fetch_recommendations(),
+                ]
+            )
             return {title: medias for title, medias in zip(titles, data)}
