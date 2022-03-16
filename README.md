@@ -118,8 +118,8 @@ Recommendation sensors are sensors giving media that you may like.
 
 There are five sensors available under the `sensors` > `recommendation` array:
 
-- `show` for [TV Shows](https://trakt.tv/calendars/my/shows/) (actually, episodes). Creates `sensor.trakt_upcoming_shows`
-- `movie` for [Movies](https://trakt.tv/calendars/my/movies/) premieres. Creates `sensor.trakt_upcoming_movies`
+- `show` for TV Shows. Creates `sensor.trakt_recommendation_shows`
+- `movie` for Movies. Creates `sensor.trakt_recommendation_movies`
 
 There are one parameter for each sensor:
 
