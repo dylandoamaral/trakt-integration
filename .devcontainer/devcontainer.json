@@ -3,7 +3,7 @@
   "dockerFile": "./Dockerfile",
   "context": "..",
   "appPort": ["8123:8123"],
-  "onCreateCommand": "pip install -r requirements",
+  "onCreateCommand": "pip install -r requirements.txt",
   "extensions": [
     "aaron-bond.better-comments",
     "coenraads.bracket-pair-colorizer-2",
