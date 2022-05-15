@@ -108,9 +108,7 @@ class Movie(Media):
         movie = data
 
         released = (
-            datetime.fromisoformat(data["released"])
-            if data.get("released")
-            else None
+            datetime.fromisoformat(data["released"]) if data.get("released") else None
         )
 
         return Movie(
