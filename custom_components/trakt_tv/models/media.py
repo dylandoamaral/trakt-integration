@@ -105,7 +105,7 @@ class Movie(Media):
         """
         Create a Movie from trakt api.
         """
-        movie = data
+        movie = data if data.get("title") else data["movie"]
 
         released = (
             datetime.fromisoformat(data["released"]) if data.get("released") else None
