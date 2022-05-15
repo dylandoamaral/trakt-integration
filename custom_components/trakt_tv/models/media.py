@@ -108,7 +108,7 @@ class Movie(Media):
         movie = data
 
         released = (
-            datetime.strptime(data["released"], UPCOMING_DATA_FORMAT)
+            datetime.fromisoformat(data["released"])
             if data.get("released")
             else None
         )
@@ -141,10 +141,11 @@ class Movie(Media):
             self.runtime = runtime
         if production_companies := data.get("production_companies"):
             self.studio = production_companies[0].get("name")
-        if not self.released and data.get("release_date"):
-            self.released = datetime.strptime(data["release_date"], "%Y-%m-%d")
-        else:
-            self.released = datetime.min
+        if not self.released:
+            if data.get("release_date"):
+                self.released = datetime.fromisoformat(data["release_date"])
+            else:
+                self.released = datetime.min
 
     def to_homeassistant(self) -> Dict[str, Any]:
         """
@@ -228,11 +229,12 @@ class Show(Media):
                 self.rating = vote_average
         if networks := data.get("networks"):
             self.studio = networks[0].get("name")
-        if not self.released and data.get("first_air_date"):
-            self.released = datetime.strptime(data["first_air_date"], "%Y-%m-%d")
-        else:
-            # If we really can't find the release date, we set it to the minimum date
-            self.released = datetime.min
+        if not self.released:
+            if data.get("first_air_date"):
+                self.released = datetime.fromisoformat(data["first_air_date"])
+            else:
+                # If we really can't find the release date, we set it to the minimum date
+                self.released = datetime.min
 
     async def get_more_information(self, language):
         """
