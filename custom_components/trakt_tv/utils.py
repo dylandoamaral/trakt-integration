@@ -28,6 +28,7 @@ def split(number: int, by: int) -> List[int]:
     return res
 
 
+# It take the days to fetch starting at yesterday because of timezone.
 def compute_calendar_args(
     days_to_fetch: int, max_days_per_request: int
 ) -> List[Tuple[str, int]]:
