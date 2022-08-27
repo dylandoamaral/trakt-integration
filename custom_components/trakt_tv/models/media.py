@@ -108,7 +108,9 @@ class Movie(Media):
         movie = data if data.get("title") else data["movie"]
 
         released = (
-            datetime.fromisoformat(data["released"]).replace(tzinfo=timezone.utc) if data.get("released") else None
+            datetime.fromisoformat(data["released"]).replace(tzinfo=timezone.utc)
+            if data.get("released")
+            else None
         )
 
         return Movie(
@@ -141,7 +143,9 @@ class Movie(Media):
             self.studio = production_companies[0].get("name")
         if not self.released:
             if data.get("release_date"):
-                self.released = datetime.fromisoformat(data["release_date"]).replace(tzinfo=timezone.utc)
+                self.released = datetime.fromisoformat(data["release_date"]).replace(
+                    tzinfo=timezone.utc
+                )
             else:
                 self.released = datetime.min
 
@@ -202,7 +206,9 @@ class Show(Media):
         show = data if data.get("title") else data["show"]
 
         released = (
-            datetime.strptime(data["first_aired"], UPCOMING_DATA_FORMAT).replace(tzinfo=timezone.utc)
+            datetime.strptime(data["first_aired"], UPCOMING_DATA_FORMAT).replace(
+                tzinfo=timezone.utc
+            )
             if data.get("first_aired")
             else None
         )

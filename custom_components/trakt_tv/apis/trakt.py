@@ -2,12 +2,14 @@
 import json
 import logging
 from asyncio import gather
+from datetime import datetime
+
 import pytz
 from aiohttp import ClientResponse, ClientSession
 from async_timeout import timeout
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
-from datetime import datetime
+
 from custom_components.trakt_tv.utils import compute_calendar_args
 
 from ..configuration import Configuration
