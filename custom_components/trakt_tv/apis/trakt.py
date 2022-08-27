@@ -2,12 +2,12 @@
 import json
 import logging
 from asyncio import gather
-
+import pytz
 from aiohttp import ClientResponse, ClientSession
 from async_timeout import timeout
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
-
+from datetime import datetime
 from custom_components.trakt_tv.utils import compute_calendar_args
 
 from ..configuration import Configuration
@@ -102,9 +102,12 @@ class TraktApi:
         raw_medias = raw_medias[0:max_medias]
         medias = [trakt_kind.value.model.from_trakt(media) for media in raw_medias]
 
-        await gather(*[media.get_more_information(language) for media in medias])
+        timezoned_now = datetime.now(pytz.timezone(configuration.get_timezone()))
+        new_medias = [media for media in medias if media.released >= timezoned_now]
 
-        return trakt_kind, Medias(medias)
+        await gather(*[media.get_more_information(language) for media in new_medias])
+
+        return trakt_kind, Medias(new_medias)
 
     async def fetch_upcomings(self, all_medias: bool):
         data = await gather(

@@ -32,7 +32,7 @@ def compute_calendar_args(
     days_to_fetch: int, max_days_per_request: int
 ) -> List[Tuple[str, int]]:
     group_of_days = split(days_to_fetch, by=max_days_per_request)
-    previous_date = datetime.now()
+    previous_date = datetime.now() - timedelta(1)
     res = []
     for days in group_of_days:
         from_date = previous_date

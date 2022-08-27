@@ -18,6 +18,12 @@ class Configuration:
         except KeyError:
             return "en"
 
+    def get_timezone(self) -> str:
+        try:
+            return self.conf["timezone"]
+        except KeyError:
+            return "UTC"
+
     def identifier_exists(self, identifier: str, source: str) -> bool:
         try:
             self.conf["sensors"][source][identifier]
