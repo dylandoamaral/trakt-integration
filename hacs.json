@@ -1,7 +1,4 @@
 {
   "name": "Trakt",
-  "domains": [
-    "sensor"
-  ],
   "render_readme": true
 }

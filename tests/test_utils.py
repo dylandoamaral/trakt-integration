@@ -16,7 +16,7 @@ class TestUtils:
     @freeze_time("2022-03-13")
     def test_compute_calendar_args(self):
         assert compute_calendar_args(90, 33) == [
-            ("2022-03-13", 33),
-            ("2022-04-15", 33),
-            ("2022-05-18", 24),
+            ("2022-03-12", 33),
+            ("2022-04-14", 33),
+            ("2022-05-17", 24),
         ]

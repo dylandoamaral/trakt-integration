@@ -65,6 +65,7 @@ Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configurat
 ```yaml
 trakt_tv:
   language: en # Prefered language for movie/show title
+  timezone: Europe/Paris # Prefered timezone
   sensors:
     upcoming:
       show:
@@ -87,6 +88,7 @@ trakt_tv:
 #### Integration Settings
 
 - `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
+- `timezone` should be a [pytz timezone](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568)
 
 #### Available Sensors
 
