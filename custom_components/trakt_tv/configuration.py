@@ -1,5 +1,8 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict
+
+from dateutil.tz import tzlocal
 
 from custom_components.trakt_tv.const import DOMAIN
 
@@ -22,7 +25,7 @@ class Configuration:
         try:
             return self.conf["timezone"]
         except KeyError:
-            return "UTC"
+            return datetime.now(tzlocal()).tzname()
 
     def identifier_exists(self, identifier: str, source: str) -> bool:
         try:
