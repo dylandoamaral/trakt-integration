@@ -87,8 +87,8 @@ trakt_tv:
 
 #### Integration Settings
 
-- `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
-- `timezone` should be a [pytz timezone](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568)
+- `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (default is "en")
+- `timezone` should be a [pytz timezone](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568) (default is the server timezone)
 
 #### Available Sensors
 
