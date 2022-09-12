@@ -221,6 +221,19 @@ See the [Upcoming Media Card](https://github.com/custom-cards/upcoming-media-car
 
 ---
 
+## Workaround
+
+Some people are unable to use the integration because the OAUTH authentification is not working.
+
+Thanks @blizzrdof77 and @robloh for the following workaround:
+
+1. go to https://my.home-assistant.io/ and enter the correct path to my instance (example: http://172.30.1.11:8123/)
+2. instead of entering your local address (http://172.30.1.11:8123/) in the TRAKT application page, enter this: https://my.home-assistant.io/redirect/oauth
+3. add the integration
+4. accept in TRAKT
+5. then accept in the my home assistant page that showed up
+6. profit
+
 ## Additional Information ℹ️
 
 ### Why not use sensor.trakt ?
