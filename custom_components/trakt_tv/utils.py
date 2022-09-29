@@ -52,6 +52,6 @@ def deserialize_json(document: str) -> Dict[str, Any]:
     :return: The dictionary
     """
     try:
-        json.loads(document)
+        return json.loads(document)
     except json.decoder.JSONDecodeError:
         raise TraktException(f"Can't deserialize the following json:\n{document}")

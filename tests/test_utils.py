@@ -1,6 +1,12 @@
+import pytest
 from freezegun import freeze_time
 
-from custom_components.trakt_tv.utils import compute_calendar_args, split
+from custom_components.trakt_tv.exception import TraktException
+from custom_components.trakt_tv.utils import (
+    compute_calendar_args,
+    deserialize_json,
+    split,
+)
 
 
 class TestUtils:
@@ -20,3 +26,13 @@ class TestUtils:
             ("2022-04-14", 33),
             ("2022-05-17", 24),
         ]
+
+    def test_deserialize_json_success(self):
+        json = '{"name":"Trakt"}'
+        dictionary = deserialize_json(json)
+        assert dictionary["name"] == "Trakt"
+
+    def test_deserialize_json_error(self):
+        json = '{"name":"}'
+        with pytest.raises(TraktException):
+            deserialize_json(json)
