@@ -70,33 +70,33 @@ class TraktApi:
             "get", f"calendars/{root}/{path}/{from_date}/{nb_days}"
         )
 
-    async def fetch_watched(
-        self, excluded_shows: list
-    ):
-        response = await self.request(
-            "get", f"sync/watched/shows?extended=noseasons"
-        )
+    async def fetch_watched(self, excluded_shows: list):
+        response = await self.request("get", f"sync/watched/shows?extended=noseasons")
         raw_shows = await response.json()
         raw_medias = []
         for show in raw_shows:
             try:
-               ids = data["show"]["ids"]
-               is_excluded = ids["slug"] in excluded_shows
+                ids = data["show"]["ids"]
+                is_excluded = ids["slug"] in excluded_shows
             except IndexError:
-               is_excluded = False
+                is_excluded = False
 
             if is_excluded:
                 continue
 
             try:
-                response_progress = await self.fetch_show_progress(ids['trakt'])
+                response_progress = await self.fetch_show_progress(ids["trakt"])
                 raw_episode = await response_progress.json()
-                if raw_episode.get('next_episode') is not None:
-                    if raw_episode['next_episode'].get('season') is not None:
-                        response_episode = await self.fetch_show_informations(ids['trakt'],raw_episode['next_episode'].get('season'),raw_episode['next_episode'].get('number'))
+                if raw_episode.get("next_episode") is not None:
+                    if raw_episode["next_episode"].get("season") is not None:
+                        response_episode = await self.fetch_show_informations(
+                            ids["trakt"],
+                            raw_episode["next_episode"].get("season"),
+                            raw_episode["next_episode"].get("number"),
+                        )
                         raw_episode_full = await response_episode.json()
-                        show['episode'] = raw_episode_full
-                        show['first_aired'] = raw_episode_full['first_aired']
+                        show["episode"] = raw_episode_full
+                        show["first_aired"] = raw_episode_full["first_aired"]
                         raw_medias.append(show)
             except IndexError:
                 LOGGER.warning("Show %s doesn't contain any trakt ID", ids["slug"])
@@ -104,21 +104,20 @@ class TraktApi:
 
         return raw_medias
 
-    async def fetch_show_progress(
-        self, id: str
-    ):
-        return await self.request(
-            "get", f"shows/{id}/progress/watched"
-        )
+    async def fetch_show_progress(self, id: str):
+        return await self.request("get", f"shows/{id}/progress/watched")
 
     async def fetch_show_informations(
         self, show_id: str, season_nbr: str, episode_nbr: str
     ):
         return await self.request(
-            "get", f"shows/{show_id}/seasons/{season_nbr}/episodes/{episode_nbr}?extended=full"
+            "get",
+            f"shows/{show_id}/seasons/{season_nbr}/episodes/{episode_nbr}?extended=full",
         )
 
-    async def fetch_upcoming(self, trakt_kind: TraktKind, all_medias: bool, next_to_watch: bool):
+    async def fetch_upcoming(
+        self, trakt_kind: TraktKind, all_medias: bool, next_to_watch: bool
+    ):
         """
         Fetch the calendar of the user trakt account based on the trak_type containing
         the calendar type.
@@ -132,7 +131,9 @@ class TraktApi:
         path = trakt_kind.value.path
         identifier = trakt_kind.value.identifier
 
-        if (not configuration.upcoming_identifier_exists(identifier, all_medias)) and not (configuration.next_to_watch_identifier_exists(identifier)):
+        if (
+            not configuration.upcoming_identifier_exists(identifier, all_medias)
+        ) and not (configuration.next_to_watch_identifier_exists(identifier)):
             return None
 
         configuration = Configuration(data=self.hass.data)
@@ -144,7 +145,9 @@ class TraktApi:
             excluded_shows = configuration.get_exclude_shows(identifier)
             raw_medias = await self.fetch_watched(excluded_shows)
         else:
-            days_to_fetch = configuration.get_upcoming_days_to_fetch(identifier, all_medias)
+            days_to_fetch = configuration.get_upcoming_days_to_fetch(
+                identifier, all_medias
+            )
             calendar_args = compute_calendar_args(days_to_fetch, 33)
             responses = await gather(
                 *[

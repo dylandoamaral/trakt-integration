@@ -49,10 +49,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 mdi_icon="mdi:movie",
             )
             sensors.append(sensor)
-    
+
         if trakt_kind.value.identifier != "show":
             continue
-        
+
         if configuration.next_to_watch_identifier_exists(identifier):
             sensor = TraktSensor(
                 hass=hass,

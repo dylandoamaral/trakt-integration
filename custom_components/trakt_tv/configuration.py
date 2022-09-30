@@ -52,9 +52,7 @@ class Configuration:
         except KeyError:
             return []
 
-    def next_to_watch_identifier_exists(
-        self, identifier: str
-    ) -> bool:
+    def next_to_watch_identifier_exists(self, identifier: str) -> bool:
         return self.identifier_exists(identifier, "next_to_watch")
 
     def upcoming_identifier_exists(
