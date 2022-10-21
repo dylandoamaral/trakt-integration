@@ -71,6 +71,7 @@ class TraktApi:
         )
 
     async def fetch_watched(self, excluded_shows: list):
+        """First, let's retrieve hidden items from user as a workaround for a potential bug in show progress_watch API"""
         hidden_shows = []
         for section in [
             "calendar",
@@ -92,6 +93,7 @@ class TraktApi:
                         section,
                     )
 
+        """Then, let's retrieve progress for current user by removing hidden or excluded shows"""
         response = await self.request("get", f"sync/watched/shows?extended=noseasons")
         raw_shows = await response.json()
         raw_medias = []
