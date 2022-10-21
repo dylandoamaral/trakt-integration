@@ -160,11 +160,12 @@ There only one sensor available under the `sensors` > `next_to_watch` array:
 
 - `show` for [TV Shows progress](https://trakt.tv/users/<username>/progress) (actually, episodes). Creates `sensor.trakt_next_to_watch_shows`
 
-There are two parameters for each sensor:
+There are three parameters for each sensor:
 
 - `max_medias` should be a positive number for how many items to grab
 - `only_aired` should be a boolean (True / False) to display only already aired episodes
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
+You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
 
 #### Example
 
