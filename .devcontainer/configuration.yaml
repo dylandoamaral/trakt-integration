@@ -11,9 +11,9 @@ trakt_tv:
   sensors:
     upcoming:
       show:
-        days_to_fetch: 60
+        days_to_fetch: 90
       movie:
-        days_to_fetch: 15
+        days_to_fetch: 90
         max_medias: 3
     all_upcoming:
       show:
