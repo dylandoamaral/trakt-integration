@@ -65,12 +65,12 @@ class TraktApi:
         if response.ok:
             text = await response.text()
             return deserialize_json(text)
-        elif response.status_code == 429:
+        elif response.status == 429:
             wait_time = int(response.headers["Retry-After"])
             await sleep(wait_time)
             return await self.request(method, url, **kwargs)
         else:
-            error = f"Can't request {url} with {method} because it returns a {response.status_code} status code."
+            error = f"Can't request {url} with {method} because it returns a {response.status} status code with reason {response.reason}."
             guidance = "If you find this error, please raise an issue at https://github.com/dylandoamaral/trakt-integration/issues."
             raise TraktException(f"{error}\n{guidance}")
 
