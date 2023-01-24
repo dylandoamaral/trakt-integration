@@ -70,7 +70,7 @@ class TraktApi:
             await sleep(wait_time)
             return await self.request(method, url, **kwargs)
         else:
-            error = f"Can't request {url} with {method} because it returns a {response.status} status code."
+            error = f"Can't request {url} with {method} because it returns a {response.status} status code with reason {response.reason}."
             guidance = "If you find this error, please raise an issue at https://github.com/dylandoamaral/trakt-integration/issues."
             raise TraktException(f"{error}\n{guidance}")
 
