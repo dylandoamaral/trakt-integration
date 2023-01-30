@@ -70,6 +70,9 @@ class TraktApi:
                 wait_time = int(response.headers["Retry-After"])
                 await sleep(wait_time)
                 return await self.request(method, url, **kwargs)
+            elif response.status in [502, 503, 504]:
+                await sleep(30)
+                return await self.request(method, url, **kwargs)
             else:
                 content = await response.text()
                 error = f"Can't request {url} with {method} because it returns a {response.status} status code with content {content}."
