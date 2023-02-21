@@ -20,6 +20,6 @@ trakt_tv:
         max_medias: 5
     recommendation:
       movie:
-        max_medias: 5
+        max_medias: 10
       show:
         max_medias: 2
