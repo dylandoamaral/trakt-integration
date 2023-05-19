@@ -82,7 +82,9 @@ class TraktApi:
                 text = await response.text()
                 return deserialize_json(text)
             elif response.status == 429:
-                wait_time = int(response.headers["Retry-After"]) + 20 # Arbitrary value to have a security
+                wait_time = (
+                    int(response.headers["Retry-After"]) + 20
+                )  # Arbitrary value to have a security
                 await self.retry_request(
                     wait_time, response, method, url, retry, **kwargs
                 )
