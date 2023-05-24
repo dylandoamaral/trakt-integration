@@ -310,7 +310,7 @@ class Medias:
                 medias = sorted(medias, key=lambda media: media.added)
         if "sort_order" in config and config["sort_order"] == "desc":
             medias.reverse()
-        max_medias = config["max_medias"] if "max_medias" in config else 100
+        max_medias = config["max_medias"] if "max_medias" in config else 30
         medias = medias[0 : max_medias]
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
