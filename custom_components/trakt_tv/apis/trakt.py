@@ -293,12 +293,36 @@ class TraktApi:
             res[trakt_kind] = Medias(medias)
         return res
 
+    async def fetch_list(self, id: int, type: str = ""):
+        return await self.request(
+            "get", f"lists/{id}/items/{type}"
+        )
+
+    async def fetch_lists(self):
+        configuration = Configuration(data=self.hass.data)
+        language = configuration.get_language()
+        res = []
+        for list in configuration.get_list_configs():
+            new_list = []
+            type = list['type'] if list.get('type') and list['type'] != 'all' else ''
+            data = await self.fetch_list(list['id'], type)
+            for media in data:
+                if media['type'] == 'movie':
+                    new_list.append(BASIC_KINDS[1].value.model.from_trakt(media))
+                else:
+                    new_list.append(BASIC_KINDS[0].value.model.from_trakt(media))
+            await gather(*[media.get_more_information(language) for media in new_list])
+            res.append(Medias(new_list))
+
+        return res
+
     async def retrieve_data(self):
         async with timeout(1800):
             titles = [
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
+                "list",
                 "all",
                 "only_aired",
                 "only_upcoming",
@@ -308,6 +332,7 @@ class TraktApi:
                     self.fetch_upcomings(all_medias=False),
                     self.fetch_upcomings(all_medias=True),
                     self.fetch_recommendations(),
+                    self.fetch_lists(),
                     self.fetch_next_to_watch(),
                     self.fetch_next_to_watch(only_aired=True),
                     self.fetch_next_to_watch(only_upcoming=True),
