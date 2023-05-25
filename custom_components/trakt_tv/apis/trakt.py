@@ -1,5 +1,6 @@
 """API for TraktTV bound to Home Assistant OAuth."""
 import logging
+import time
 from asyncio import gather, sleep
 from datetime import datetime
 
@@ -19,6 +20,8 @@ from ..models.media import Medias
 from ..utils import deserialize_json
 
 LOGGER = logging.getLogger(__name__)
+
+CACHE_EXPIRATION = 300  # 5 minutes
 
 
 class TraktApi:
@@ -94,68 +97,103 @@ class TraktApi:
     async def fetch_calendar(
         self, path: str, from_date: str, nb_days: int, all_medias: bool
     ):
+        cache_key = f"user_calendar_{path}_{from_date}_{nb_days}"
+        cache_key_time = f"{cache_key}_time"
+        current_time = time.time()
+        if self.hass.data.get(cache_key) and (
+            current_time - self.hass.data.get(cache_key_time) <= CACHE_EXPIRATION
+        ):
+            return self.hass.data.get(cache_key)
+
         root = "all" if all_medias else "my"
-        return await self.request(
+        reponse = await self.request(
             "get", f"calendars/{root}/{path}/{from_date}/{nb_days}"
         )
 
+        self.hass.data[cache_key] = reponse
+        self.hass.data[cache_key_time] = current_time
+        return response
+
     async def fetch_watched(self, excluded_shows: list):
         """First, let's retrieve hidden items from user as a workaround for a potential bug in show progress_watch API"""
-        hidden_shows = []
-        for section in [
-            "calendar",
-            "progress_watched",
-            "progress_watched_reset",
-            "progress_collected",
-        ]:
-            hidden_items = await self.request(
-                "get", f"users/hidden/{section}?type=show"
-            )
-            for hidden_item in hidden_items:
-                try:
-                    trakt_id = hidden_item["show"]["ids"]["trakt"]
-                    hidden_shows.append(trakt_id)
-                except IndexError:
-                    LOGGER.error(
-                        "Error while trying to retrieve hidden items in section %s",
-                        section,
-                    )
+        cache_key = f"user_hidden_shows"
+        cache_key_time = f"{cache_key}_time"
+        current_time = time.time()
+        if self.hass.data.get(cache_key) and (
+            current_time - self.hass.data.get(cache_key_time) <= CACHE_EXPIRATION
+        ):
+            hidden_shows = self.hass.data.get(cache_key)
+        else:
+            hidden_shows = []
+            for section in [
+                "calendar",
+                "progress_watched",
+                "progress_watched_reset",
+                "progress_collected",
+            ]:
+                hidden_items = await self.request(
+                    "get", f"users/hidden/{section}?type=show"
+                )
+                if hidden_items is not None:
+                    for hidden_item in hidden_items:
+                        try:
+                            trakt_id = hidden_item["show"]["ids"]["trakt"]
+                            hidden_shows.append(trakt_id)
+                        except IndexError:
+                            LOGGER.error(
+                                "Error while trying to retrieve hidden items in section %s",
+                                section,
+                            )
+            self.hass.data[cache_key] = hidden_shows
+            self.hass.data[cache_key_time] = current_time
 
         """Then, let's retrieve progress for current user by removing hidden or excluded shows"""
         raw_shows = await self.request("get", f"sync/watched/shows?extended=noseasons")
         raw_medias = []
-        for show in raw_shows:
-            try:
-                ids = show["show"]["ids"]
-                is_excluded = (
-                    ids["slug"] in excluded_shows or ids["trakt"] in hidden_shows
-                )
-            except IndexError:
-                is_excluded = False
+        if raw_shows is not None:
+            for show in raw_shows:
+                try:
+                    ids = show["show"]["ids"]
+                    is_excluded = (
+                        ids["slug"] in excluded_shows or ids["trakt"] in hidden_shows
+                    )
+                except IndexError:
+                    is_excluded = False
 
-            if is_excluded:
-                continue
+                if is_excluded:
+                    continue
 
-            try:
-                raw_episode = await self.fetch_show_progress(ids["trakt"])
-                if raw_episode.get("next_episode") is not None:
-                    if raw_episode["next_episode"].get("season") is not None:
-                        raw_episode_full = await self.fetch_show_informations(
-                            ids["trakt"],
-                            raw_episode["next_episode"].get("season"),
-                            raw_episode["next_episode"].get("number"),
-                        )
-                        show["episode"] = raw_episode_full
-                        show["first_aired"] = raw_episode_full["first_aired"]
-                        raw_medias.append(show)
-            except IndexError:
-                LOGGER.warning("Show %s doesn't contain any trakt ID", ids["slug"])
-                continue
+                try:
+                    raw_episode = await self.fetch_show_progress(ids["trakt"])
+                    if raw_episode.get("next_episode") is not None:
+                        if raw_episode["next_episode"].get("season") is not None:
+                            raw_episode_full = await self.fetch_show_informations(
+                                ids["trakt"],
+                                raw_episode["next_episode"].get("season"),
+                                raw_episode["next_episode"].get("number"),
+                            )
+                            show["episode"] = raw_episode_full
+                            show["first_aired"] = raw_episode_full["first_aired"]
+                            raw_medias.append(show)
+                except IndexError:
+                    LOGGER.warning("Show %s doesn't contain any trakt ID", ids["slug"])
+                    continue
 
         return raw_medias
 
     async def fetch_show_progress(self, id: str):
-        return await self.request("get", f"shows/{id}/progress/watched")
+        cache_key = f"show_progress_{id}"
+        cache_key_time = f"{cache_key}_time"
+        current_time = time.time()
+        if self.hass.data.get(cache_key) and (
+            current_time - self.hass.data.get(cache_key_time) <= CACHE_EXPIRATION
+        ):
+            return self.hass.data.get(cache_key)
+
+        response = await self.request("get", f"shows/{id}/progress/watched")
+        self.hass.data[cache_key] = response
+        self.hass.data[cache_key_time] = current_time
+        return response
 
     async def fetch_show_informations(
         self, show_id: str, season_nbr: str, episode_nbr: str
@@ -288,9 +326,14 @@ class TraktApi:
         )
         res = {}
         for trakt_kind, raw_medias in zip(BASIC_KINDS, data):
-            medias = [trakt_kind.value.model.from_trakt(media) for media in raw_medias]
-            await gather(*[media.get_more_information(language) for media in medias])
-            res[trakt_kind] = Medias(medias)
+            if raw_medias is not None:
+                medias = [
+                    trakt_kind.value.model.from_trakt(media) for media in raw_medias
+                ]
+                await gather(
+                    *[media.get_more_information(language) for media in medias]
+                )
+                res[trakt_kind] = Medias(medias)
         return res
 
     async def retrieve_data(self):
