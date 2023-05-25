@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from .const import DOMAIN
 from .exception import TraktException
 
-CACHE_EXPIRATION = 3600  # 1 hour
+CACHE_EXPIRATION = 300  # 5 minutes
 
 
 def update_domain_data(hass, key, content):
