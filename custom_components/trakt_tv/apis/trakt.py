@@ -3,6 +3,7 @@ import logging
 import time
 from asyncio import gather, sleep
 from datetime import datetime
+from typing import Any, Dict
 
 import pytz
 from aiohttp import ClientResponse, ClientSession
@@ -17,11 +18,9 @@ from ..const import API_HOST, DOMAIN
 from ..exception import TraktException
 from ..models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 from ..models.media import Medias
-from ..utils import deserialize_json
+from ..utils import cache_insert, cache_retrieve, deserialize_json
 
 LOGGER = logging.getLogger(__name__)
-
-CACHE_EXPIRATION = 300  # 5 minutes
 
 
 class TraktApi:
@@ -38,6 +37,9 @@ class TraktApi:
         self.host = API_HOST
         self.oauth_session = oauth_session
         self.hass = hass
+
+    def cache(self) -> Dict[str, Any]:
+        return self.hass.data[DOMAIN].get("cache", {})
 
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
@@ -98,31 +100,27 @@ class TraktApi:
         self, path: str, from_date: str, nb_days: int, all_medias: bool
     ):
         cache_key = f"user_calendar_{path}_{from_date}_{nb_days}"
-        cache_key_time = f"{cache_key}_time"
-        current_time = time.time()
-        if self.hass.data.get(cache_key) and (
-            current_time - self.hass.data.get(cache_key_time) <= CACHE_EXPIRATION
-        ):
-            return self.hass.data.get(cache_key)
+
+        maybe_answer = cache_retrieve(self.cache(), cache_key)
+        if maybe_answer is not None:
+            return maybe_answer
 
         root = "all" if all_medias else "my"
-        reponse = await self.request(
+        response = await self.request(
             "get", f"calendars/{root}/{path}/{from_date}/{nb_days}"
         )
 
-        self.hass.data[cache_key] = reponse
-        self.hass.data[cache_key_time] = current_time
+        cache_insert(self.cache(), cache_key, response)
+
         return response
 
     async def fetch_watched(self, excluded_shows: list):
         """First, let's retrieve hidden items from user as a workaround for a potential bug in show progress_watch API"""
         cache_key = f"user_hidden_shows"
-        cache_key_time = f"{cache_key}_time"
-        current_time = time.time()
-        if self.hass.data.get(cache_key) and (
-            current_time - self.hass.data.get(cache_key_time) <= CACHE_EXPIRATION
-        ):
-            hidden_shows = self.hass.data.get(cache_key)
+
+        maybe_answer = cache_retrieve(self.cache(), cache_key)
+        if maybe_answer is not None:
+            hidden_shows = maybe_answer
         else:
             hidden_shows = []
             for section in [
@@ -144,8 +142,7 @@ class TraktApi:
                                 "Error while trying to retrieve hidden items in section %s",
                                 section,
                             )
-            self.hass.data[cache_key] = hidden_shows
-            self.hass.data[cache_key_time] = current_time
+            cache_insert(self.cache(), cache_key, hidden_shows)
 
         """Then, let's retrieve progress for current user by removing hidden or excluded shows"""
         raw_shows = await self.request("get", f"sync/watched/shows?extended=noseasons")
@@ -183,16 +180,15 @@ class TraktApi:
 
     async def fetch_show_progress(self, id: str):
         cache_key = f"show_progress_{id}"
-        cache_key_time = f"{cache_key}_time"
-        current_time = time.time()
-        if self.hass.data.get(cache_key) and (
-            current_time - self.hass.data.get(cache_key_time) <= CACHE_EXPIRATION
-        ):
-            return self.hass.data.get(cache_key)
+
+        maybe_answer = cache_retrieve(self.cache(), cache_key)
+        if maybe_answer is not None:
+            return maybe_answer
 
         response = await self.request("get", f"shows/{id}/progress/watched")
-        self.hass.data[cache_key] = response
-        self.hass.data[cache_key_time] = current_time
+
+        cache_insert(self.cache(), cache_key, response)
+
         return response
 
     async def fetch_show_informations(
