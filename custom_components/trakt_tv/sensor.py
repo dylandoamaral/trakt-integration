@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(minutes=8)
 
+
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN]["instances"]["coordinator"]
