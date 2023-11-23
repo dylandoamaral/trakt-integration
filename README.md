@@ -85,19 +85,19 @@ trakt_tv:
         max_medias: 3
     next_to_watch:
       all:
-        max_medias: 40
+        max_medias: 5
         exclude:
           - veep
           - the-original
           - friends
       only_aired:
-        max_medias: 40
+        max_medias: 5
         exclude:
           - veep
           - the-original
           - friends
       only_upcoming:
-        max_medias: 40
+        max_medias: 5
 ```
 
 #### Integration Settings
@@ -173,7 +173,7 @@ There are three parameters for each sensor:
 
 - `max_medias` should be a positive number for how many items to grab
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
-You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
+  You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
 
 #### Example
 
