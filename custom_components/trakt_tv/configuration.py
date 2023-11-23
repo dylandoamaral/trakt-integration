@@ -76,3 +76,9 @@ class Configuration:
 
     def get_recommendation_max_medias(self, identifier: str) -> int:
         return self.get_max_medias(identifier, "recommendation")
+
+    def get_list_configs(self) -> int:
+        try:
+            return self.conf["sensors"]["list"]
+        except KeyError:
+            return []

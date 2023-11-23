@@ -23,3 +23,7 @@ trakt_tv:
         max_medias: 10
       show:
         max_medias: 2
+    list:
+      - id: 3837211
+        sort_by: added
+        sort_order: desc

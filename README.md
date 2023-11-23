@@ -175,6 +175,19 @@ There are three parameters for each sensor:
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
 You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
 
+##### List sensors
+
+List sensors are sensors gather media from a specified list.
+
+You can have as many list sensors as you would like
+
+There are one parameter for each sensor:
+
+- `id` should be a positive number for the id of the trakt list
+- `sort_by` should be a left blank or set to 'rank', 'added' or 'released'
+- `sort_order` should be left blank or set to either 'asc'or 'desc'
+- `max_medias` should be a positive number for how many items to grab - default 30
+
 #### Example
 
 For example, adding only the following to `configuration.yaml` will create two sensors.
@@ -196,6 +209,11 @@ trakt_tv:
         max_medias: 3
       movie:
         max_medias: 3
+    list:
+      - id: 3837211
+        sort_by: added
+        sort_order: desc
+        max_medias: 20
 ```
 
 ### 3. Restart Home Assistant

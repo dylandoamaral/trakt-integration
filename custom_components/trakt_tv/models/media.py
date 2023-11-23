@@ -45,6 +45,8 @@ class Identifiers:
 class Media(ABC):
     name: str
     ids: Identifiers
+    rank: int
+    added: datetime
 
     @abstractstaticmethod
     def from_trakt(data) -> "Media":
@@ -117,6 +119,8 @@ class Movie(Media):
             name=movie["title"],
             released=released,
             ids=Identifiers.from_trakt(movie),
+            rank=data["rank"] if data.get("rank") else None,
+            added=data["listed_at"] if data.get("listed_at") else None,
         )
 
     async def get_more_information(self, language):
@@ -172,6 +176,8 @@ class Episode:
     season: int
     title: str
     ids: Identifiers
+    rank: int
+    added: datetime
 
     @staticmethod
     def from_trakt(data) -> "Episode":
@@ -185,6 +191,8 @@ class Episode:
             season=episode["season"],
             title=episode["title"],
             ids=Identifiers.from_trakt(episode),
+            rank=data["rank"] if data.get("rank") else None,
+            added=data["listed_at"] if data.get("listed_at") else None,
         )
 
 
@@ -220,6 +228,8 @@ class Show(Media):
             ids=Identifiers.from_trakt(show),
             released=released,
             episode=episode,
+            rank=data["rank"] if data.get("rank") else None,
+            added=data["listed_at"] if data.get("listed_at") else None,
         )
 
     def update_common_information(self, data: Dict[str, Any]):
@@ -283,13 +293,24 @@ class Show(Media):
 class Medias:
     items: List[Media]
 
-    def to_homeassistant(self) -> Dict[str, Any]:
+    def to_homeassistant(self, config={}) -> Dict[str, Any]:
         """
-        Convert the List of medias to recommendation data.
+        Sort the list then convert the medias to list data.
 
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        medias = sorted(self.items, key=lambda media: media.released)
+        medias = self.items
+        if "sort_by" in config:
+            if config["sort_by"] == "released":
+                medias = sorted(medias, key=lambda media: media.released)
+            if config["sort_by"] == "rank":
+                medias = sorted(medias, key=lambda media: media.rank)
+            if config["sort_by"] == "added":
+                medias = sorted(medias, key=lambda media: media.added)
+        if "sort_order" in config and config["sort_order"] == "desc":
+            medias.reverse()
+        max_medias = config["max_medias"] if "max_medias" in config else 30
+        medias = medias[0 : max_medias]
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
