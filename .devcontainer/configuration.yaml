@@ -23,3 +23,6 @@ trakt_tv:
         max_medias: 10
       show:
         max_medias: 2
+    next_to_watch:
+      all:
+        max_medias: 10
