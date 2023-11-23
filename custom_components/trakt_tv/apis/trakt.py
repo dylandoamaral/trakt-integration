@@ -160,21 +160,26 @@ class TraktApi:
                 if is_excluded:
                     continue
 
+                identifier = ids["slug"]
+
                 try:
                     raw_episode = await self.fetch_show_progress(ids["trakt"])
-                    if raw_episode is not None:
-                        if raw_episode.get("next_episode") is not None:
-                            if raw_episode["next_episode"].get("season") is not None:
-                                raw_episode_full = await self.fetch_show_informations(
-                                    ids["trakt"],
-                                    raw_episode["next_episode"].get("season"),
-                                    raw_episode["next_episode"].get("number"),
-                                )
-                                show["episode"] = raw_episode_full
-                                show["first_aired"] = raw_episode_full["first_aired"]
-                                raw_medias.append(show)
+                    raw_episode_full = await self.fetch_show_informations(
+                        ids["trakt"],
+                        raw_episode["next_episode"]["season"],
+                        raw_episode["next_episode"]["number"],
+                    )
+                    show["episode"] = raw_episode_full
+                    show["first_aired"] = raw_episode_full["first_aired"]
+                    raw_medias.append(show)
                 except IndexError:
-                    LOGGER.warning("Show %s doesn't contain any trakt ID", ids["slug"])
+                    LOGGER.warning(f"Show {identifier} doesn't contain any trakt ID")
+                    continue
+                except TypeError as e:
+                    LOGGER.warning(f"Show {identifier} can't be extracted due to {e}")
+                    continue
+                except KeyError as e:
+                    LOGGER.warning(f"Show {identifier} can't be extracted due to {e}")
                     continue
 
         return raw_medias
@@ -183,6 +188,7 @@ class TraktApi:
         cache_key = f"show_progress_{id}"
 
         maybe_answer = cache_retrieve(self.cache(), cache_key)
+
         if maybe_answer is not None:
             return maybe_answer
 
