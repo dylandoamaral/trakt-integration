@@ -129,7 +129,9 @@ class TraktApi:
         except KeyError:
             return False
 
-    async def fetch_watched(self, excluded_shows: list):
+    async def fetch_watched(
+        self, excluded_shows: list, excluded_finished: bool = False
+    ):
         """First, let's retrieve hidden items from user as a workaround for a potential bug in show progress_watch API"""
         cache_key = f"user_hidden_shows"
 
@@ -176,7 +178,8 @@ class TraktApi:
                 raw_show_progress = await self.fetch_show_progress(ids["trakt"])
                 is_finished = self.is_show_finished(raw_show_progress)
 
-                if is_finished:
+                """aired date and completed date will always be the same for next to watch tvshows if you're up-to-date"""
+                if excluded_finished and is_finished:
                     continue
 
                 raw_next_episode = await self.fetch_show_informations(
@@ -262,7 +265,7 @@ class TraktApi:
 
         if next_to_watch:
             excluded_shows = configuration.get_exclude_shows(identifier)
-            raw_medias = await self.fetch_watched(excluded_shows)
+            raw_medias = await self.fetch_watched(excluded_shows, not only_upcoming)
         else:
             days_to_fetch = configuration.get_upcoming_days_to_fetch(
                 identifier, all_medias
