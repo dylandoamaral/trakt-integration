@@ -360,22 +360,37 @@ class TraktApi:
 
     async def retrieve_data(self):
         async with timeout(1800):
-            titles = [
+            titles = []
+            data_function = []
+            configuration = Configuration(data=self.hass.data)
+            source_function = {
+                "upcoming": self.fetch_upcomings(all_medias=False),
+                "all_upcoming": self.fetch_upcomings(all_medias=True),
+                "recommendation": self.fetch_recommendations(),
+                "all": self.fetch_next_to_watch(),
+                "only_aired": self.fetch_next_to_watch(only_aired=True),
+                "only_upcoming": self.fetch_next_to_watch(only_upcoming=True),
+            }
+
+            """First, let's configure which sensors we need depending on configuration"""
+            for source in [
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
+            ]:
+                if configuration.source_exists(source):
+                    titles.append(source)
+                    data_function.append(source_function.get(source))
+
+            """Then, let's add the next to watch sensors if needed"""
+            for identifier in [
                 "all",
                 "only_aired",
                 "only_upcoming",
-            ]
-            data = await gather(
-                *[
-                    self.fetch_upcomings(all_medias=False),
-                    self.fetch_upcomings(all_medias=True),
-                    self.fetch_recommendations(),
-                    self.fetch_next_to_watch(),
-                    self.fetch_next_to_watch(only_aired=True),
-                    self.fetch_next_to_watch(only_upcoming=True),
-                ]
-            )
+            ]:
+                if configuration.next_to_watch_identifier_exists(identifier):
+                    titles.append(identifier)
+                    data_function.append(source_function.get(identifier))
+
+            data = await gather(*data_function)
             return {title: medias for title, medias in zip(titles, data)}
