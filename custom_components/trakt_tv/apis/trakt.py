@@ -16,7 +16,7 @@ from custom_components.trakt_tv.utils import compute_calendar_args
 from ..configuration import Configuration
 from ..const import API_HOST, DOMAIN
 from ..exception import TraktException
-from ..models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from ..models.kind import BASIC_KINDS, UPCOMING_KINDS, TraktKind
 from ..models.media import Medias
 from ..utils import cache_insert, cache_retrieve, deserialize_json
 
@@ -308,22 +308,30 @@ class TraktApi:
         return trakt_kind, Medias(new_medias)
 
     async def fetch_next_to_watch(
-        self, only_aired: bool = False, only_upcoming: bool = False
+        self,
+        kind: TraktKind,
+        only_aired: bool = False,
+        only_upcoming: bool = False,
     ):
-        data = await gather(
-            *[
-                self.fetch_upcoming(kind, False, True, only_aired, only_upcoming)
-                for kind in NEXT_TO_WATCH_KINDS
-            ]
-        )
-        data = filter(lambda x: x is not None, data)
-        return {trakt_kind: medias for trakt_kind, medias in data}
+        return await self.fetch_upcoming(kind, False, True, only_aired, only_upcoming)
 
-    async def fetch_upcomings(self, all_medias: bool):
+    async def fetch_upcomings(
+        self, configured_kinds: list[TraktKind], all_medias: bool
+    ):
+        kinds = []
+
+        for kind in configured_kinds:
+            if kind in UPCOMING_KINDS:
+                kinds.append(kind)
+            else:
+                LOGGER.warn(
+                    f"Upcomings doesn't support {kind}, you should remove it from the configuration."
+                )
+
         data = await gather(
             *[
                 self.fetch_upcoming(kind, all_medias, False, False, False)
-                for kind in TraktKind
+                for kind in kinds
             ]
         )
         data = filter(lambda x: x is not None, data)
@@ -334,7 +342,17 @@ class TraktApi:
             "get", f"recommendations/{path}?limit={max_items}&ignore_collected=false"
         )
 
-    async def fetch_recommendations(self):
+    async def fetch_recommendations(self, configured_kinds: list[TraktKind]):
+        kinds = []
+
+        for kind in configured_kinds:
+            if kind in BASIC_KINDS:
+                kinds.append(kind)
+            else:
+                LOGGER.warn(
+                    f"Recommendation doesn't support {kind}, you should remove it from the configuration."
+                )
+
         configuration = Configuration(data=self.hass.data)
         language = configuration.get_language()
         data = await gather(
@@ -343,11 +361,13 @@ class TraktApi:
                     kind.value.path,
                     configuration.get_recommendation_max_medias(kind.value.identifier),
                 )
-                for kind in BASIC_KINDS
+                for kind in kinds
             ]
         )
+
         res = {}
-        for trakt_kind, raw_medias in zip(BASIC_KINDS, data):
+
+        for trakt_kind, raw_medias in zip(kinds, data):
             if raw_medias is not None:
                 medias = [
                     trakt_kind.value.model.from_trakt(media) for media in raw_medias
@@ -356,21 +376,55 @@ class TraktApi:
                     *[media.get_more_information(language) for media in medias]
                 )
                 res[trakt_kind] = Medias(medias)
+
         return res
+
+    async def fetch_useful_data(self, sources_with_kinds: dict):
+        fetching_functions = []
+
+        if "upcoming" in sources_with_kinds:
+            fetching_functions.append(
+                self.fetch_upcomings(
+                    configured_kinds=sources_with_kinds["upcoming"], all_medias=False
+                )
+            )
+        if "all_upcoming" in sources_with_kinds:
+            fetching_functions.append(
+                self.fetch_upcomings(
+                    configured_kinds=sources_with_kinds["all_upcoming"], all_medias=True
+                )
+            )
+        if "recommendation" in sources_with_kinds:
+            fetching_functions.append(
+                self.fetch_recommendations(
+                    configured_kinds=sources_with_kinds["recommendation"]
+                )
+            )
+        if "all" in sources_with_kinds:
+            fetching_functions.append(
+                self.fetch_next_to_watch(kind=TraktKind.NEXT_TO_WATCH_ALL)
+            )
+        if "only_aired" in sources_with_kinds:
+            fetching_functions.append(
+                self.fetch_next_to_watch(
+                    kind=TraktKind.NEXT_TO_WATCH_AIRED,
+                    only_aired=True,
+                )
+            )
+        if "only_upcoming" in sources_with_kinds:
+            fetching_functions.append(
+                self.fetch_next_to_watch(
+                    kind=TraktKind.NEXT_TO_WATCH_UPCOMING,
+                    only_upcoming=True,
+                )
+            )
+
+        return await gather(*fetching_functions)
 
     async def retrieve_data(self):
         async with timeout(1800):
-            titles = []
-            data_function = []
+            sources_with_kinds = {}
             configuration = Configuration(data=self.hass.data)
-            source_function = {
-                "upcoming": self.fetch_upcomings(all_medias=False),
-                "all_upcoming": self.fetch_upcomings(all_medias=True),
-                "recommendation": self.fetch_recommendations(),
-                "all": self.fetch_next_to_watch(),
-                "only_aired": self.fetch_next_to_watch(only_aired=True),
-                "only_upcoming": self.fetch_next_to_watch(only_upcoming=True),
-            }
 
             """First, let's configure which sensors we need depending on configuration"""
             for source in [
@@ -379,18 +433,18 @@ class TraktApi:
                 "recommendation",
             ]:
                 if configuration.source_exists(source):
-                    titles.append(source)
-                    data_function.append(source_function.get(source))
+                    sources_with_kinds[source] = configuration.get_kinds(source)
 
             """Then, let's add the next to watch sensors if needed"""
-            for identifier in [
+            for sub_source in [
                 "all",
                 "only_aired",
                 "only_upcoming",
             ]:
-                if configuration.next_to_watch_identifier_exists(identifier):
-                    titles.append(identifier)
-                    data_function.append(source_function.get(identifier))
+                if configuration.next_to_watch_identifier_exists(sub_source):
+                    sources_with_kinds[sub_source] = []
 
-            data = await gather(*data_function)
-            return {title: medias for title, medias in zip(titles, data)}
+            data = await self.fetch_useful_data(sources_with_kinds)
+            return {
+                title: medias for title, medias in zip(sources_with_kinds.keys(), data)
+            }
