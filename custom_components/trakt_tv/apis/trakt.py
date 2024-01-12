@@ -1,7 +1,7 @@
 """API for TraktTV bound to Home Assistant OAuth."""
 import logging
-import time
 from asyncio import gather, sleep
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict
 
@@ -313,7 +313,12 @@ class TraktApi:
         only_aired: bool = False,
         only_upcoming: bool = False,
     ):
-        return await self.fetch_upcoming(kind, False, True, only_aired, only_upcoming)
+        data = await self.fetch_upcoming(kind, False, True, only_aired, only_upcoming)
+
+        if data is None:
+            return {}
+
+        return dict([data])
 
     async def fetch_upcomings(
         self, configured_kinds: list[TraktKind], all_medias: bool
@@ -423,7 +428,7 @@ class TraktApi:
 
     async def retrieve_data(self):
         async with timeout(1800):
-            sources_with_kinds = {}
+            sources_with_kinds = OrderedDict()
             configuration = Configuration(data=self.hass.data)
 
             """First, let's configure which sensors we need depending on configuration"""
@@ -445,6 +450,7 @@ class TraktApi:
                     sources_with_kinds[sub_source] = []
 
             data = await self.fetch_useful_data(sources_with_kinds)
+
             return {
                 title: medias for title, medias in zip(sources_with_kinds.keys(), data)
             }
