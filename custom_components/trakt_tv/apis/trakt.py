@@ -1,7 +1,6 @@
 """API for TraktTV bound to Home Assistant OAuth."""
 import logging
 from asyncio import gather, sleep
-from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict
 
@@ -309,11 +308,13 @@ class TraktApi:
 
     async def fetch_next_to_watch(
         self,
-        kind: TraktKind,
+        configured_kind: TraktKind,
         only_aired: bool = False,
         only_upcoming: bool = False,
     ):
-        data = await self.fetch_upcoming(kind, False, True, only_aired, only_upcoming)
+        data = await self.fetch_upcoming(
+            configured_kind, False, True, only_aired, only_upcoming
+        )
 
         if data is None:
             return {}
@@ -384,52 +385,35 @@ class TraktApi:
 
         return res
 
-    async def fetch_useful_data(self, sources_with_kinds: dict):
-        fetching_functions = []
-
-        if "upcoming" in sources_with_kinds:
-            fetching_functions.append(
-                self.fetch_upcomings(
-                    configured_kinds=sources_with_kinds["upcoming"], all_medias=False
-                )
-            )
-        if "all_upcoming" in sources_with_kinds:
-            fetching_functions.append(
-                self.fetch_upcomings(
-                    configured_kinds=sources_with_kinds["all_upcoming"], all_medias=True
-                )
-            )
-        if "recommendation" in sources_with_kinds:
-            fetching_functions.append(
-                self.fetch_recommendations(
-                    configured_kinds=sources_with_kinds["recommendation"]
-                )
-            )
-        if "all" in sources_with_kinds:
-            fetching_functions.append(
-                self.fetch_next_to_watch(kind=TraktKind.NEXT_TO_WATCH_ALL)
-            )
-        if "only_aired" in sources_with_kinds:
-            fetching_functions.append(
-                self.fetch_next_to_watch(
-                    kind=TraktKind.NEXT_TO_WATCH_AIRED,
-                    only_aired=True,
-                )
-            )
-        if "only_upcoming" in sources_with_kinds:
-            fetching_functions.append(
-                self.fetch_next_to_watch(
-                    kind=TraktKind.NEXT_TO_WATCH_UPCOMING,
-                    only_upcoming=True,
-                )
-            )
-
-        return await gather(*fetching_functions)
-
     async def retrieve_data(self):
         async with timeout(1800):
-            sources_with_kinds = OrderedDict()
             configuration = Configuration(data=self.hass.data)
+
+            sources = []
+            coroutine_sources_data = []
+
+            source_function = {
+                "upcoming": lambda kinds: self.fetch_upcomings(
+                    configured_kinds=kinds,
+                    all_medias=False,
+                ),
+                "all_upcoming": lambda kinds: self.fetch_upcomings(
+                    configured_kinds=kinds,
+                    all_medias=True,
+                ),
+                "recommendation": lambda kinds: self.fetch_recommendations(
+                    configured_kinds=kinds,
+                ),
+                "all": lambda: self.fetch_next_to_watch(
+                    configured_kind=TraktKind.NEXT_TO_WATCH_ALL,
+                ),
+                "only_aired": lambda: self.fetch_next_to_watch(
+                    configured_kind=TraktKind.NEXT_TO_WATCH_AIRED, only_aired=True
+                ),
+                "only_upcoming": lambda: self.fetch_next_to_watch(
+                    configured_kind=TraktKind.NEXT_TO_WATCH_UPCOMING, only_upcoming=True
+                ),
+            }
 
             """First, let's configure which sensors we need depending on configuration"""
             for source in [
@@ -438,7 +422,9 @@ class TraktApi:
                 "recommendation",
             ]:
                 if configuration.source_exists(source):
-                    sources_with_kinds[source] = configuration.get_kinds(source)
+                    sources.append(source)
+                    kinds = configuration.get_kinds(source)
+                    coroutine_sources_data.append(source_function.get(source)(kinds))
 
             """Then, let's add the next to watch sensors if needed"""
             for sub_source in [
@@ -447,10 +433,12 @@ class TraktApi:
                 "only_upcoming",
             ]:
                 if configuration.next_to_watch_identifier_exists(sub_source):
-                    sources_with_kinds[sub_source] = []
+                    sources.append(sub_source)
+                    coroutine_sources_data.append(source_function.get(sub_source)())
 
-            data = await self.fetch_useful_data(sources_with_kinds)
+            sources_data = await gather(*coroutine_sources_data)
 
             return {
-                title: medias for title, medias in zip(sources_with_kinds.keys(), data)
+                source: source_data
+                for source, source_data in zip(sources, sources_data)
             }
