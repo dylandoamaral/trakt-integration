@@ -313,7 +313,11 @@ class TraktApi:
         only_upcoming: bool = False,
     ):
         data = await self.fetch_upcoming(
-            configured_kind, False, True, only_aired, only_upcoming
+            configured_kind,
+            False,
+            True,
+            only_aired,
+            only_upcoming,
         )
 
         if data is None:
@@ -408,10 +412,12 @@ class TraktApi:
                     configured_kind=TraktKind.NEXT_TO_WATCH_ALL,
                 ),
                 "only_aired": lambda: self.fetch_next_to_watch(
-                    configured_kind=TraktKind.NEXT_TO_WATCH_AIRED, only_aired=True
+                    configured_kind=TraktKind.NEXT_TO_WATCH_AIRED,
+                    only_aired=True,
                 ),
                 "only_upcoming": lambda: self.fetch_next_to_watch(
-                    configured_kind=TraktKind.NEXT_TO_WATCH_UPCOMING, only_upcoming=True
+                    configured_kind=TraktKind.NEXT_TO_WATCH_UPCOMING,
+                    only_upcoming=True,
                 ),
             }
 
