@@ -1,5 +1,5 @@
-black
-freezegun
 homeassistant
-isort
-pytest
+black==24.2.0
+freezegun==1.2.2
+isort==5.13.2
+pytest==7.2.0
