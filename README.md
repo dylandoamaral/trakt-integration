@@ -212,8 +212,10 @@ You have to provide a `client_id` and a `client_secret` to use this integration.
 - Go to the [Trakt API Apps](https://trakt.tv/oauth/applications) page and press the **New application** button
 - Fill in the **Name** (required) and **Description** (optional) fields. These fields are just for your own reference
 - Fill in **Redirect uri** with one of the following
-  - If you use HA Cloud: `https://<ha-cloud-remote-url>/auth/external/callback`
-  - If you do not use HA Cloud: `https://<your-ha-server-address>:<port>/auth/external/callback`
+  - Default: `https://my.home-assistant.io/redirect/oauth`
+  - If you have disabled [My Home Assistant]([url](https://www.home-assistant.io/integrations/my)) on your installation
+    - If you use HA Cloud: `https://<ha-cloud-remote-url>/auth/external/callback`
+    - If you do not use HA Cloud: `https://<your-ha-server-address>:<port>/auth/external/callback`
 - Do not enter anything in **Javascript (cors) origins** and do not select any **Permissions**
 - Press the **Save app** button
 - Record the displayed `client_id` and `client_secret`
