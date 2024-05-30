@@ -135,11 +135,11 @@ All Upcoming sensors are sensors giving the next anticipated movies or shows.
 
 There are five sensors available under the `sensors` > `all_upcoming` array:
 
-- `show` for [TV Shows](https://trakt.tv/calendars/all/shows/) (actually, episodes). Creates `sensor.trakt_all_upcoming_shows`
-- `new_show` for [New Shows](https://trakt.tv/calendars/all/new-shows/) (series premiers). Creates `sensor.trakt_all_upcoming_new_shows`
-- `premiere` for [Season Premieres](https://trakt.tv/calendars/all/premieres/). Creates `sensor.trakt_all_upcoming_premieres`
-- `movie` for [Movies](https://trakt.tv/calendars/all/movies/) premieres. Creates `sensor.trakt_all_upcoming_movies`
-- `dvd` for [DVD & Blu-ray](https://trakt.tv/calendars/all/dvd/) releases. Creates `sensor.trakt_all_upcoming_dvds`
+- `show` for [TV Shows](https://trakt.tv/calendars/shows/) (actually, episodes). Creates `sensor.trakt_all_upcoming_shows`
+- `new_show` for [New Shows](https://trakt.tv/calendars/new-shows/) (series premiers). Creates `sensor.trakt_all_upcoming_new_shows`
+- `premiere` for [Season Premieres](https://trakt.tv/calendars/premieres/). Creates `sensor.trakt_all_upcoming_premieres`
+- `movie` for [Movies](https://trakt.tv/calendars/movies/) premieres. Creates `sensor.trakt_all_upcoming_movies`
+- `dvd` for [DVD & Blu-ray](https://trakt.tv/calendars/dvd/) releases. Creates `sensor.trakt_all_upcoming_dvds`
 
 There are two parameters for each sensor:
 
