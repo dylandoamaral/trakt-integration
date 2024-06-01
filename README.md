@@ -98,6 +98,18 @@ trakt_tv:
           - friends
       only_upcoming:
         max_medias: 5
+    lists:
+      - friendly_name: "Christmas Watchlist"
+        private_list: True # Set to True if the list is your own private list
+        list_id: "christmas-watchlist" # Can be the slug, because it's a private list
+        max_medias: 5
+      - friendly_name: "2024 Academy Awards"
+        list_id: 26885014
+        max_medias: 5
+      - friendly_name: "Star Trek Movies"
+        list_id: 967660
+        media_type: "movie" # Filters the list to only show movies
+        max_medias: 5
 ```
 
 #### Integration Settings
@@ -174,6 +186,18 @@ There are three parameters for each sensor:
 - `max_medias` should be a positive number for how many items to grab
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
   You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
+
+##### Lists sensor
+
+Lists sensor allows you to fetch both public and private lists from Trakt, each list will be a sensor. The items in the list will be sorted by their rank on Trakt.
+
+There are four parameters for each sensor:
+
+  - `friendly_name` (MANDATORY) should be a string for the name of the sensor. This has to be unique for each list.
+  - `list_id` (MANDATORY) should be the Trakt list ID. For public lists the ID has to be numeric, for private lists the ID can be either the numeric ID or the slug from the URL. To get the numeric ID of a public list, copy the link address of the list before opening it. This will give you a URL like `https://trakt.tv/lists/2142753`. The `2142753` part is the numeric ID you need to use.   
+  - `private_list` (OPTIONAL) has to be set to `true` if using your own private list. Default is `false`
+  - `media_type` (OPTIONAL) can be used to filter the media type within the list, possible values are `show`, `movie`, `episode`. Default is blank, which will show all media types
+  - `max_medias` (OPTIONAL) should be a positive number for how many items to grab. Default is `3`
 
 #### Example
 

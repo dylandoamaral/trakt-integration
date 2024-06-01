@@ -69,6 +69,25 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
+    for trakt_kind in TraktKind:
+        if trakt_kind != TraktKind.LIST:
+            continue
+
+        identifier = trakt_kind.value.identifier
+
+        if configuration.source_exists(identifier):
+            for list_entry in configuration.get_sensor_config(identifier):
+                sensor = TraktSensor(
+                    hass=hass,
+                    config_entry=list_entry,
+                    coordinator=coordinator,
+                    trakt_kind=trakt_kind,
+                    source=identifier,
+                    prefix=f"Trakt List {list_entry['friendly_name']}",
+                    mdi_icon="mdi:view-list",
+                )
+                sensors.append(sensor)
+
     async_add_entities(sensors)
 
 
@@ -104,7 +123,10 @@ class TraktSensor(Entity):
     @property
     def medias(self):
         if self.coordinator.data:
-            return self.coordinator.data.get(self.source, {}).get(self.trakt_kind, None)
+            medias = self.coordinator.data.get(self.source, {}).get(self.trakt_kind, None)
+            if self.trakt_kind == TraktKind.LIST:
+                return medias.get(self.config_entry['friendly_name'], None)
+            return medias
         return None
 
     @property
@@ -119,6 +141,8 @@ class TraktSensor(Entity):
     @property
     def data(self):
         if self.medias:
+            if self.trakt_kind == TraktKind.LIST:
+                return self.medias.to_homeassistant()
             max_medias = self.configuration["max_medias"]
             return self.medias.to_homeassistant()[0 : max_medias + 1]
         return []

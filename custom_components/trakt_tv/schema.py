@@ -4,7 +4,7 @@ from typing import Any, Dict
 import pytz
 from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
-from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
+from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema, All
 
 from .const import DOMAIN, LANGUAGE_CODES
 from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
@@ -41,6 +41,7 @@ def sensors_schema() -> Dict[str, Any]:
         "all_upcoming": upcoming_schema(),
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
+        "lists": All([lists_schema()]),
     }
 
 
@@ -74,6 +75,17 @@ def recommendation_schema() -> Dict[str, Any]:
         }
 
     return subschemas
+
+def lists_schema() -> dict[Required, Any]:
+    schema = {
+        Required("list_id"): cv.string,
+        Required("friendly_name"): cv.string,
+        Required("max_medias", default=3): cv.positive_int,
+        Required("private_list", default=False): cv.boolean,
+        Required("media_type", default=""): cv.string,
+    }
+
+    return schema
 
 
 configuration_schema = dictionary_to_schema(domain_schema(), extra=ALLOW_EXTRA)
