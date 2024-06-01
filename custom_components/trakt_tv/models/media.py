@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
 
 from custom_components.trakt_tv.apis.tmdb import get_movie_data, get_show_data
 
@@ -295,3 +295,10 @@ class Medias:
         medias = sorted(self.items, key=lambda media: media.released)
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
+
+    @staticmethod
+    def trakt_to_class(
+        trakt_type: str,
+    ) -> Type[Show] | Type[Movie] | Type[Episode] | None:
+        type_to_class = {"show": Show, "episode": Show, "movie": Movie}
+        return type_to_class.get(trakt_type, None)

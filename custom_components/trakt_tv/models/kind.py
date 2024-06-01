@@ -12,6 +12,13 @@ class CalendarInformation:
     model: Media
 
 
+@dataclass
+class ListInformation:
+    identifier: str
+    name: str
+    path: str
+
+
 class TraktKind(Enum):
     SHOW = CalendarInformation("show", "Shows", "shows", Show)
     NEW_SHOW = CalendarInformation("new_show", "New Shows", "shows/new", Show)
@@ -23,6 +30,7 @@ class TraktKind(Enum):
     NEXT_TO_WATCH_UPCOMING = CalendarInformation(
         "only_upcoming", "Only Upcoming", "shows", Show
     )
+    LIST = ListInformation("lists", "", "lists/{list_id}/items")
 
     @classmethod
     def from_string(cls, string):
