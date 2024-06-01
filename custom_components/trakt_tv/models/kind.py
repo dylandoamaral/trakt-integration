@@ -11,11 +11,13 @@ class CalendarInformation:
     path: str
     model: Media
 
+
 @dataclass
 class ListInformation:
     identifier: str
     name: str
     path: str
+
 
 class TraktKind(Enum):
     SHOW = CalendarInformation("show", "Shows", "shows", Show)

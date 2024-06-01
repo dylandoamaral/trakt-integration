@@ -4,7 +4,7 @@ from typing import Any, Dict
 import pytz
 from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
-from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema, All
+from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, All, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES
 from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
@@ -75,6 +75,7 @@ def recommendation_schema() -> Dict[str, Any]:
         }
 
     return subschemas
+
 
 def lists_schema() -> dict[Required, Any]:
     schema = {

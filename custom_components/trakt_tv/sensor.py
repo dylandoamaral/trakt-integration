@@ -123,9 +123,11 @@ class TraktSensor(Entity):
     @property
     def medias(self):
         if self.coordinator.data:
-            medias = self.coordinator.data.get(self.source, {}).get(self.trakt_kind, None)
+            medias = self.coordinator.data.get(self.source, {}).get(
+                self.trakt_kind, None
+            )
             if self.trakt_kind == TraktKind.LIST:
-                return medias.get(self.config_entry['friendly_name'], None)
+                return medias.get(self.config_entry["friendly_name"], None)
             return medias
         return None
 

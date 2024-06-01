@@ -17,7 +17,7 @@ from ..configuration import Configuration
 from ..const import API_HOST, DOMAIN
 from ..exception import TraktException
 from ..models.kind import BASIC_KINDS, UPCOMING_KINDS, TraktKind
-from ..models.media import Medias, Show, Movie, Episode
+from ..models.media import Episode, Medias, Movie, Show
 from ..utils import cache_insert, cache_retrieve, deserialize_json
 
 LOGGER = logging.getLogger(__name__)
@@ -390,8 +390,10 @@ class TraktApi:
 
         return res
 
-    async def fetch_list(self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str):
-        """ Fetch the list, if user_path is True, the list will be fetched from the user end-point """
+    async def fetch_list(
+        self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str
+    ):
+        """Fetch the list, if user_path is True, the list will be fetched from the user end-point"""
         # Add the user path if needed
         if user_path:
             path = f"users/me/{path}"
@@ -411,9 +413,7 @@ class TraktApi:
         # Add the limit to the path
         path = f"{path}?limit={max_items}"
 
-        return await self.request(
-            "get", path
-        )
+        return await self.request("get", path)
 
     async def fetch_lists(self, configured_kind: TraktKind):
 
@@ -426,10 +426,10 @@ class TraktApi:
             *[
                 self.fetch_list(
                     configured_kind.value.path,
-                    list_config['list_id'],
-                    list_config['private_list'],
-                    list_config['max_medias'],
-                    list_config['media_type']
+                    list_config["list_id"],
+                    list_config["private_list"],
+                    list_config["max_medias"],
+                    list_config["media_type"],
                 )
                 for list_config in lists
             ]
@@ -444,22 +444,26 @@ class TraktApi:
                 medias = []
                 for media in raw_medias:
                     # Get model based on media type in data
-                    media_type = media.get('type')
+                    media_type = media.get("type")
                     model = Medias.trakt_to_class(media_type)
 
                     if model:
                         medias.append(model.from_trakt(media))
                     else:
-                        LOGGER.warn(f"Media type {media_type} in {list_config['friendly_name']} is not supported")
+                        LOGGER.warn(
+                            f"Media type {media_type} in {list_config['friendly_name']} is not supported"
+                        )
 
                 if not medias:
-                    LOGGER.warn(f"No entries found for list {list_config['friendly_name']}")
+                    LOGGER.warn(
+                        f"No entries found for list {list_config['friendly_name']}"
+                    )
                     continue
 
                 await gather(
                     *[media.get_more_information(language) for media in medias]
                 )
-                res[list_config['friendly_name']] = Medias(medias)
+                res[list_config["friendly_name"]] = Medias(medias)
 
         return {configured_kind: res}
 

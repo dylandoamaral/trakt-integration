@@ -297,10 +297,8 @@ class Medias:
         return [first_item] + medias
 
     @staticmethod
-    def trakt_to_class(trakt_type: str) -> Type[Show] | Type[Movie] | Type[Episode] | None:
-        type_to_class = {
-            'show': Show,
-            'episode': Show,
-            'movie': Movie
-        }
+    def trakt_to_class(
+        trakt_type: str,
+    ) -> Type[Show] | Type[Movie] | Type[Episode] | None:
+        type_to_class = {"show": Show, "episode": Show, "movie": Movie}
         return type_to_class.get(trakt_type, None)
