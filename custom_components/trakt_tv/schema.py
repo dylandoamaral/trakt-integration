@@ -31,6 +31,7 @@ def domain_schema() -> Schema:
             Required("timezone", default=datetime.now(tzlocal()).tzname()): In(
                 pytz.all_timezones_set
             ),
+            Required("stats", default=False): bool,
         }
     }
 

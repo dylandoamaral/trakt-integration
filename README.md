@@ -66,6 +66,7 @@ Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configurat
 trakt_tv:
   language: en # Prefered language for movie/show title
   timezone: Europe/Paris # Prefered timezone
+  stats: True # Enable stats sensors
   sensors:
     upcoming:
       show:
@@ -104,6 +105,7 @@ trakt_tv:
 
 - `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (default is "en")
 - `timezone` should be a [pytz timezone](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568) (default is the server timezone)
+- `stats` should be True if you want to create sensors for your stats (default is False)
 
 #### Available Sensors
 
@@ -174,6 +176,35 @@ There are three parameters for each sensor:
 - `max_medias` should be a positive number for how many items to grab
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
   You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
+
+##### Stats sensors
+
+Creates individual sensors giving all of your stats about the movies, shows, and episodes you have watched, collected, and rated.
+To enable set `stats` to True in the integration settings.
+
+The following sensors are available:
+- Episodes Collected
+- Episodes Comments
+- Episodes Minutes
+- Episodes Plays
+- Episodes Ratings
+- Episodes Watched
+- Movies Collected
+- Movies Comments
+- Movies Minutes
+- Movies Plays
+- Movies Ratings
+- Movies Watched
+- Network Followers
+- Network Following
+- Network Friends
+- Ratings Total
+- Seasons Comments
+- Seasons Ratings
+- Shows Collected
+- Shows Comments
+- Shows Ratings
+- Shows Watched
 
 #### Example
 

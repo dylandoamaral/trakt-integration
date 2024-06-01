@@ -28,6 +28,12 @@ class Configuration:
         except KeyError:
             return datetime.now(tzlocal()).tzname()
 
+    def should_load_stats(self):
+        try:
+            return self.conf["stats"]
+        except KeyError:
+            return False
+
     def identifier_exists(self, identifier: str, source: str) -> bool:
         try:
             self.conf["sensors"][source][identifier]

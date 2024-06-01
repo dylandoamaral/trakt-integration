@@ -69,6 +69,33 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
+    # Add sensors for stats
+    if configuration.should_load_stats():
+        stats = {}
+        # Check if the coordinator has data
+        if coordinator.data:
+            stats = coordinator.data.get("stats", {})
+
+        # Create a sensor for each key in the stats
+        for key, value in stats.items():
+            # Transform the key to a more readable format
+            title = key.replace("_", " ").title()
+
+            # Skip the key if it is not a valid state
+            if isinstance(value, dict):
+                continue
+
+            # Create the sensor
+            sensor = TraktStateSensor(
+                hass=hass,
+                coordinator=coordinator,
+                prefix="Trakt Stats",
+                mdi_icon="mdi:chart-line",
+                title=title,
+                state=value,
+            )
+            sensors.append(sensor)
+
     async_add_entities(sensors)
 
 
@@ -147,6 +174,43 @@ class TraktSensor(Entity):
     def has_entity_name(self) -> bool:
         """Return if the name of the entity is describing only the entity itself."""
         return True
+
+    async def async_update(self):
+        """Request coordinator to update data."""
+        await self.coordinator.async_request_refresh()
+
+
+class TraktStateSensor(Entity):
+    """Trakt sensor to show data as state"""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        hass,
+        coordinator,
+        prefix: str,
+        mdi_icon: str,
+        title: str,
+        state: str,
+    ):
+        """Initialize the sensor."""
+        self.hass = hass
+        self.coordinator = coordinator
+        self.prefix = prefix
+        self.icon = mdi_icon
+        self.title = title
+        self.state = state
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return f"{self.prefix} {self.title}"
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity"""
+        return self.title.split("_")[-1]
 
     async def async_update(self):
         """Request coordinator to update data."""
