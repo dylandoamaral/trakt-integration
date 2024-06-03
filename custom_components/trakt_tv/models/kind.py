@@ -23,6 +23,8 @@ class TraktKind(Enum):
     NEXT_TO_WATCH_UPCOMING = CalendarInformation(
         "only_upcoming", "Only Upcoming", "shows", Show
     )
+    ANTICIPATED_MOVIE = CalendarInformation("anticipated_movie", "Anticipated Movies", "movies/anticipated", Movie)
+    ANTICIPATED_SHOW = CalendarInformation("anticipated_show", "Anticipated Shows", "shows/anticipated", Show)
 
     @classmethod
     def from_string(cls, string):

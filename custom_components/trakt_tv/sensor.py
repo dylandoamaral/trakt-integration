@@ -51,6 +51,21 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
+        # start of new code
+        if trakt_kind in [TraktKind.ANTICIPATED_MOVIE, TraktKind.ANTICIPATED_SHOW]:
+            if configuration.anticipated_identifier_exists(identifier):
+                sensor = TraktSensor(
+                    hass=hass,
+                    config_entry=config_entry,
+                    coordinator=coordinator,
+                    trakt_kind=trakt_kind,
+                    source="anticipated",
+                    prefix="Trakt Anticipated",
+                    mdi_icon="mdi:movie" if trakt_kind == TraktKind.ANTICIPATED_MOVIE else "mdi:television",
+                )
+                sensors.append(sensor)
+        # end of new code
+
     for trakt_kind in TraktKind:
         if trakt_kind not in NEXT_TO_WATCH_KINDS:
             continue

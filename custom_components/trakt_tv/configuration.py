@@ -78,6 +78,14 @@ class Configuration:
     def get_recommendation_max_medias(self, identifier: str) -> int:
         return self.get_max_medias(identifier, "recommendation")
 
+    # start of new code
+    def anticipated_identifier_exists(self, identifier: str) -> bool:
+        return self.identifier_exists(identifier, "anticipated")
+
+    def get_anticipated_max_medias(self, identifier: str) -> int:
+        return self.get_max_medias(identifier, "anticipated")
+    # end of new code
+
     def source_exists(self, source: str) -> bool:
         try:
             self.conf["sensors"][source]

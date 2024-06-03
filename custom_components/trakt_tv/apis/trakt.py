@@ -390,6 +390,59 @@ class TraktApi:
 
         return res
 
+    # start of new code
+    async def fetch_anticipated(self, path: str, limit: int):
+        return await self.request(
+            "get", f"{path}/anticipated?limit={limit}&ignore_collected=false"
+        )
+
+    async def fetch_anticipated_movies(self, limit: int):
+        return await self.fetch_anticipated("movies", limit)
+
+    async def fetch_anticipated_shows(self, limit: int):
+        return await self.fetch_anticipated("shows", limit)
+
+    async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
+        kinds = []
+
+        for kind in configured_kinds:
+            if kind in [TraktKind.ANTICIPATED_MOVIE, TraktKind.ANTICIPATED_SHOW]:
+                kinds.append(kind)
+            else:
+                LOGGER.warn(
+                    f"Anticipated doesn't support {kind}, you should remove it from the configuration."
+                )
+
+        configuration = Configuration(data=self.hass.data)
+        language = configuration.get_language()
+        data = await gather(
+            *[
+                self.fetch_anticipated_movies(
+                    configuration.get_anticipated_max_medias(TraktKind.ANTICIPATED_MOVIE.value.identifier)
+                )
+                if kind == TraktKind.ANTICIPATED_MOVIE
+                else self.fetch_anticipated_shows(
+                    configuration.get_anticipated_max_medias(TraktKind.ANTICIPATED_SHOW.value.identifier)
+                )
+                for kind in kinds
+            ]
+        )
+
+        res = {}
+
+        for trakt_kind, raw_medias in zip(kinds, data):
+            if raw_medias is not None:
+                medias = [
+                    trakt_kind.value.model.from_trakt(media) for media in raw_medias
+                ]
+                await gather(
+                    *[media.get_more_information(language) for media in medias]
+                )
+                res[trakt_kind] = Medias(medias)
+
+        return res
+    # end of new code
+
     async def retrieve_data(self):
         async with timeout(1800):
             configuration = Configuration(data=self.hass.data)
@@ -409,6 +462,11 @@ class TraktApi:
                 "recommendation": lambda kinds: self.fetch_recommendations(
                     configured_kinds=kinds,
                 ),
+                # start of new code
+                "anticipated": lambda kinds: self.fetch_anticipated_medias(
+                    configured_kinds=kinds,
+                ),
+                # end of new code
                 "all": lambda: self.fetch_next_to_watch(
                     configured_kind=TraktKind.NEXT_TO_WATCH_ALL,
                 ),
@@ -427,6 +485,9 @@ class TraktApi:
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
+                # start of new code
+                "anticipated",
+                # end of new code
             ]:
                 if configuration.source_exists(source):
                     sources.append(source)
