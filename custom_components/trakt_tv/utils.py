@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -92,3 +92,9 @@ def cache_retrieve(cache: Dict[str, Any], key: str) -> Optional[Any]:
             return None
     else:
         return None
+
+def parse_utc_date(date_str: Optional[str]) -> Optional[datetime]:
+    """
+    Parse an ISO date string (all dates returned from Trakt) to a datetime object.
+    """
+    return datetime.fromisoformat(date_str).replace(tzinfo=timezone.utc) if date_str else None

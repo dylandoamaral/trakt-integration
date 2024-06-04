@@ -63,7 +63,7 @@ class TraktApi:
             guidance = f"Too many retries, if you find this error, please raise an issue at https://github.com/dylandoamaral/trakt-integration/issues."
             raise TraktException(f"{error} {guidance}")
 
-    async def request(self, method, url, retry=10, **kwargs) -> ClientResponse:
+    async def request(self, method, url, retry=10, **kwargs) -> dict[str, Any]:
         """Make a request."""
         access_token = await self.async_get_access_token()
         client_id = self.hass.data[DOMAIN]["configuration"]["client_id"]
