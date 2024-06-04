@@ -126,12 +126,14 @@ class TraktSensor(Entity):
     def medias(self):
         if not self.coordinator.data:
             return None
+
         if self.trakt_kind == TraktKind.LIST:
             try:
                 name = self.config_entry["friendly_name"]
                 return self.coordinator.data[self.source][self.trakt_kind][name]
             except KeyError:
                 return None
+
         try:
             return self.coordinator.data[self.source][self.trakt_kind]
         except KeyError:
@@ -150,11 +152,13 @@ class TraktSensor(Entity):
     def data(self):
         if not self.medias:
             return []
+
         if self.trakt_kind == TraktKind.LIST:
             sort_by = self.config_entry["sort_by"]
             sort_order = self.config_entry["sort_order"]
             max_medias = self.config_entry["max_medias"]
             return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
+
         max_medias = self.configuration["max_medias"]
         return self.medias.to_homeassistant()[0 : max_medias + 1]
 
