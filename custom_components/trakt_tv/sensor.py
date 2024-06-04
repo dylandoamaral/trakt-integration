@@ -217,7 +217,11 @@ class TraktStateSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity"""
-        return self.title.split("_")[-1]
+        units = ["ratings", "minutes", "comments", "friends", "followers", "following", "episodes", "movies", "shows", "seasons"]
+        for unit in units:
+            if unit in self.title.lower():
+                return unit
+        return None
 
     async def async_update(self):
         """Request coordinator to update data."""
