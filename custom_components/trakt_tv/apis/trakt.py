@@ -410,8 +410,8 @@ class TraktApi:
                 LOGGER.warn(f"Filtering list on {media_type} is not supported")
                 return None
 
-        # Add the limit to the path
-        path = f"{path}?limit={max_items}"
+        # Add extended info used for sorting
+        path = f"{path}?extended=full"
 
         return await self.request("get", path)
 

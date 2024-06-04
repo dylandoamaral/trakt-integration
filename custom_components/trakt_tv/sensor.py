@@ -151,7 +151,10 @@ class TraktSensor(Entity):
         if not self.medias:
             return []
         if self.trakt_kind == TraktKind.LIST:
-            return self.medias.to_homeassistant()
+            sort_by = self.config_entry["sort_by"]
+            sort_order = self.config_entry["sort_order"]
+            max_medias = self.config_entry["max_medias"]
+            return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
         max_medias = self.configuration["max_medias"]
         return self.medias.to_homeassistant()[0 : max_medias + 1]
 

@@ -6,7 +6,7 @@ from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
-from .const import DOMAIN, LANGUAGE_CODES
+from .const import DOMAIN, LANGUAGE_CODES, SORT_BY_OPTIONS, SORT_HOW_OPTIONS
 from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 
@@ -84,6 +84,8 @@ def lists_schema() -> dict[Required, Any]:
         Required("max_medias", default=3): cv.positive_int,
         Required("private_list", default=False): cv.boolean,
         Required("media_type", default=""): cv.string,
+        Required("sort_by", default="rank"): In(SORT_BY_OPTIONS),
+        Required("sort_order", default="asc"): In(SORT_HOW_OPTIONS),
     }
 
     return schema

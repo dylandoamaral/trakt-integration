@@ -171,3 +171,14 @@ LANGUAGE_CODES = [
     "za",
     "zu",
 ]
+
+SORT_BY_OPTIONS = [
+    "rating",
+    "rating_trakt",
+    "rank",
+    "runtime",
+    "released",
+    "listed_at"
+]
+
+SORT_HOW_OPTIONS = ["asc", "desc"]

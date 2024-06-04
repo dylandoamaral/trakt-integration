@@ -72,6 +72,7 @@ class Media(ABC):
             "fanart": self.fanart,
             "genres": self.genres,
             "rating": self.rating,
+            "rating_trakt": self.rating_trakt,
             "studio": self.studio,
         }
 
@@ -98,6 +99,9 @@ class Movie(Media):
     runtime: Optional[int] = None
     studio: Optional[str] = None
     released: Optional[datetime] = None  # This one is actually mandatory
+    rank: Optional[int] = None
+    listed_at: Optional[datetime] = None
+    rating_trakt: Optional[int] = None
 
     @staticmethod
     def from_trakt(data) -> "Movie":
@@ -110,6 +114,9 @@ class Movie(Media):
             name=movie["title"],
             released=parse_utc_date(data.get("released")),
             ids=Identifiers.from_trakt(movie),
+            rank=data.get("rank"),
+            listed_at=parse_utc_date(data.get("listed_at")),
+            rating_trakt=movie.get("rating"),
         )
 
     async def get_more_information(self, language):
@@ -188,6 +195,10 @@ class Show(Media):
     studio: Optional[str] = None
     episode: Optional[Episode] = None
     released: Optional[datetime] = None
+    runtime: Optional[int] = None
+    rank: Optional[int] = None
+    listed_at: Optional[datetime] = None
+    rating_trakt: Optional[int] = None
 
     @staticmethod
     def from_trakt(data) -> "Show":
@@ -203,6 +214,10 @@ class Show(Media):
             ids=Identifiers.from_trakt(show),
             released=parse_utc_date(data.get("first_aired")),
             episode=episode,
+            rank=data.get("rank"),
+            listed_at=parse_utc_date(data.get("listed_at")),
+            runtime=show.get("runtime"),
+            rating_trakt=show.get("rating"),
         )
 
     def update_common_information(self, data: Dict[str, Any]):
@@ -268,14 +283,14 @@ class Show(Media):
 class Medias:
     items: List[Media]
 
-    def to_homeassistant(self) -> Dict[str, Any]:
+    def to_homeassistant(self, sort_by = 'released', sort_order = 'asc') -> Dict[str, Any]:
         """
         Convert the List of medias to recommendation data.
 
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        medias = sorted(self.items, key=lambda media: media.released)
+        medias = sorted(self.items, key=lambda media: getattr(media, sort_by), reverse=sort_order == "desc")
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
 
