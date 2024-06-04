@@ -118,18 +118,24 @@ class TraktSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
+        if not self.trakt_kind.value.name:
+            return f"{self.prefix}"
         return f"{self.prefix} {self.trakt_kind.value.name}"
 
     @property
     def medias(self):
-        if self.coordinator.data:
-            medias = self.coordinator.data.get(self.source, {}).get(
-                self.trakt_kind, None
-            )
-            if self.trakt_kind == TraktKind.LIST:
-                return medias.get(self.config_entry["friendly_name"], None)
-            return medias
-        return None
+        if not self.coordinator.data:
+            return None
+        if self.trakt_kind == TraktKind.LIST:
+            try:
+                name = self.config_entry["friendly_name"]
+                return self.coordinator.data[self.source][self.trakt_kind][name]
+            except KeyError:
+                return None
+        try:
+            return self.coordinator.data[self.source][self.trakt_kind]
+        except KeyError:
+            return None
 
     @property
     def configuration(self):
@@ -142,12 +148,12 @@ class TraktSensor(Entity):
 
     @property
     def data(self):
-        if self.medias:
-            if self.trakt_kind == TraktKind.LIST:
-                return self.medias.to_homeassistant()
-            max_medias = self.configuration["max_medias"]
-            return self.medias.to_homeassistant()[0 : max_medias + 1]
-        return []
+        if not self.medias:
+            return []
+        if self.trakt_kind == TraktKind.LIST:
+            return self.medias.to_homeassistant()
+        max_medias = self.configuration["max_medias"]
+        return self.medias.to_homeassistant()[0 : max_medias + 1]
 
     @property
     def state(self):

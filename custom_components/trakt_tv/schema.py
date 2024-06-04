@@ -4,7 +4,7 @@ from typing import Any, Dict
 import pytz
 from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
-from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, All, In, Required, Schema
+from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES
 from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
@@ -41,7 +41,7 @@ def sensors_schema() -> Dict[str, Any]:
         "all_upcoming": upcoming_schema(),
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
-        "lists": All([lists_schema()]),
+        "lists": Schema([lists_schema()]),
     }
 
 
