@@ -93,8 +93,13 @@ def cache_retrieve(cache: Dict[str, Any], key: str) -> Optional[Any]:
     else:
         return None
 
+
 def parse_utc_date(date_str: Optional[str]) -> Optional[datetime]:
     """
     Parse an ISO date string (all dates returned from Trakt) to a datetime object.
     """
-    return datetime.fromisoformat(date_str).replace(tzinfo=timezone.utc) if date_str else None
+    return (
+        datetime.fromisoformat(date_str).replace(tzinfo=timezone.utc)
+        if date_str
+        else None
+    )

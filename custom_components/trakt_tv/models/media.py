@@ -283,14 +283,18 @@ class Show(Media):
 class Medias:
     items: List[Media]
 
-    def to_homeassistant(self, sort_by = 'released', sort_order = 'asc') -> Dict[str, Any]:
+    def to_homeassistant(self, sort_by="released", sort_order="asc") -> Dict[str, Any]:
         """
         Convert the List of medias to recommendation data.
 
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        medias = sorted(self.items, key=lambda media: getattr(media, sort_by), reverse=sort_order == "desc")
+        medias = sorted(
+            self.items,
+            key=lambda media: getattr(media, sort_by),
+            reverse=sort_order == "desc",
+        )
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
 
