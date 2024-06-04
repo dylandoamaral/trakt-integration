@@ -13,6 +13,13 @@ class Configuration:
     data: Dict[str, Any]
 
     @property
+    def ignore_collected(self) -> bool:
+        try:
+            return self.conf["ignore_collected"]
+        except KeyError:
+            return False
+
+    @property
     def conf(self) -> Dict[str, Any]:
         return self.data[DOMAIN]["configuration"]
 

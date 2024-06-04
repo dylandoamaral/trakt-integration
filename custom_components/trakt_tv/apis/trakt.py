@@ -327,7 +327,7 @@ class TraktApi:
         return dict([data])
 
     async def fetch_upcomings(
-        self, configured_kinds: list[TraktKind], all_medias: bool
+        self, configured_kinds: "list[TraktKind]", all_medias: bool
     ):
         kinds = []
 
@@ -353,7 +353,7 @@ class TraktApi:
             "get", f"recommendations/{path}?limit={max_items}&ignore_collected=false"
         )
 
-    async def fetch_recommendations(self, configured_kinds: list[TraktKind]):
+    async def fetch_recommendations(self, configured_kinds: "list[TraktKind]"):
         kinds = []
 
         for kind in configured_kinds:
@@ -391,22 +391,26 @@ class TraktApi:
         return res
 
     # start of new code
-    async def fetch_anticipated(self, path: str, limit: int):
+    async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
         return await self.request(
-            "get", f"{path}/anticipated?limit={limit}&ignore_collected=false"
+            "get", f"{path}?limit={limit}&ignore_collected={ignore_collected}"
         )
 
     async def fetch_anticipated_movies(self, limit: int):
-        return await self.fetch_anticipated("movies", limit)
+        return await self.fetch_anticipated("movies", limit, ignore_collected=False)
 
     async def fetch_anticipated_shows(self, limit: int):
-        return await self.fetch_anticipated("shows", limit)
+        return await self.fetch_anticipated("shows", limit, ignore_collected=False)
 
-    async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
+    async def fetch_anticipated_medias(self, configured_kinds: "list[TraktKind]"):
+        ANTICIPATED_KINDS = [
+            TraktKind.ANTICIPATED_MOVIE,
+            TraktKind.ANTICIPATED_SHOW,
+        ]
+
         kinds = []
-
         for kind in configured_kinds:
-            if kind in [TraktKind.ANTICIPATED_MOVIE, TraktKind.ANTICIPATED_SHOW]:
+            if kind in ANTICIPATED_KINDS:
                 kinds.append(kind)
             else:
                 LOGGER.warn(
@@ -417,12 +421,10 @@ class TraktApi:
         language = configuration.get_language()
         data = await gather(
             *[
-                self.fetch_anticipated_movies(
-                    configuration.get_anticipated_max_medias(TraktKind.ANTICIPATED_MOVIE.value.identifier)
-                )
-                if kind == TraktKind.ANTICIPATED_MOVIE
-                else self.fetch_anticipated_shows(
-                    configuration.get_anticipated_max_medias(TraktKind.ANTICIPATED_SHOW.value.identifier)
+                self.fetch_anticipated(
+                    kind.value.path,
+                    configuration.get_anticipated_max_medias(kind.value.identifier),
+                    configuration.ignore_collected
                 )
                 for kind in kinds
             ]

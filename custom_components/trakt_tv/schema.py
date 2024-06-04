@@ -8,6 +8,7 @@ from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES
 from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.kind import ANTICIPATED_KINDS
 
 
 def dictionary_to_schema(
@@ -82,7 +83,7 @@ def recommendation_schema() -> Dict[str, Any]:
 # start of new code
 def anticipated_schema() -> Dict[str, Any]:
     subschemas = {}
-    for trakt_kind in [TraktKind.ANTICIPATED_MOVIE, TraktKind.ANTICIPATED_SHOW]:
+    for trakt_kind in ANTICIPATED_KINDS:
         subschemas[trakt_kind.value.identifier] = {
             Required("max_medias", default=3): cv.positive_int,
         }
