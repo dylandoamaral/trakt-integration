@@ -66,7 +66,6 @@ Add it as a top-level key (i.e., `trakt_tv:` is not indented) in the `configurat
 trakt_tv:
   language: en # Prefered language for movie/show title
   timezone: Europe/Paris # Prefered timezone
-  stats: True # Enable stats sensors
   sensors:
     upcoming:
       show:
@@ -105,7 +104,6 @@ trakt_tv:
 
 - `language` should be an [ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (default is "en")
 - `timezone` should be a [pytz timezone](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568) (default is the server timezone)
-- `stats` should be True if you want to create sensors for your stats (default is False)
 
 #### Available Sensors
 
@@ -180,31 +178,47 @@ There are three parameters for each sensor:
 ##### Stats sensors
 
 Creates individual sensors giving all of your stats about the movies, shows, and episodes you have watched, collected, and rated.
-To enable set `stats` to True in the integration settings.
+Add `sensors` > `stats` with a list of the sensors you want to enable. You can enable all of them instead by adding `all` to the list.
 
-The following sensors are available:
-- Episodes Collected
-- Episodes Comments
-- Episodes Minutes
-- Episodes Plays
-- Episodes Ratings
-- Episodes Watched
-- Movies Collected
-- Movies Comments
-- Movies Minutes
-- Movies Plays
-- Movies Ratings
-- Movies Watched
-- Network Followers
-- Network Following
-- Network Friends
-- Ratings Total
-- Seasons Comments
-- Seasons Ratings
-- Shows Collected
-- Shows Comments
-- Shows Ratings
-- Shows Watched
+The available stats are available:
+ - `movies_plays`
+ - `movies_watched`
+ - `movies_minutes`
+ - `movies_collected`
+ - `movies_ratings`
+ - `movies_comments`
+ - `shows_watched`
+ - `shows_collected`
+ - `shows_ratings`
+ - `shows_comments`
+ - `seasons_ratings`
+ - `seasons_comments`
+ - `episodes_plays`
+ - `episodes_watched`
+ - `episodes_minutes`
+ - `episodes_collected`
+ - `episodes_ratings`
+ - `episodes_comments`
+ - `network_friends`
+ - `network_followers`
+ - `network_following`
+ - `ratings_total`
+
+###### Stats Example
+```yaml
+trakt_tv:
+  sensors:
+    # Create sensors for all available stats
+    stats:
+      - all
+    
+    # OR
+    
+    # Create sensors for specific stats (see available stats above)
+    stats:
+      - episodes_plays
+      - movies_minutes
+```
 
 #### Example
 

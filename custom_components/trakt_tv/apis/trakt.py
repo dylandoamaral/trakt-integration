@@ -460,7 +460,7 @@ class TraktApi:
                     coroutine_sources_data.append(source_function.get(sub_source)())
 
             """ Load user stats """
-            if configuration.should_load_stats():
+            if configuration.source_exists("stats"):
                 sources.append("stats")
                 coroutine_sources_data.append(source_function.get("stats")())
 

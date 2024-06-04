@@ -28,12 +28,6 @@ class Configuration:
         except KeyError:
             return datetime.now(tzlocal()).tzname()
 
-    def should_load_stats(self):
-        try:
-            return self.conf["stats"]
-        except KeyError:
-            return False
-
     def identifier_exists(self, identifier: str, source: str) -> bool:
         try:
             self.conf["sensors"][source][identifier]
@@ -83,6 +77,9 @@ class Configuration:
 
     def get_recommendation_max_medias(self, identifier: str) -> int:
         return self.get_max_medias(identifier, "recommendation")
+
+    def stats_key_exists(self, key: str) -> bool:
+        return key in self.conf["sensors"]["stats"]
 
     def source_exists(self, source: str) -> bool:
         try:

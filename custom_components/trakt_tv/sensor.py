@@ -70,20 +70,27 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             sensors.append(sensor)
 
     # Add sensors for stats
-    if configuration.should_load_stats():
+    if configuration.source_exists("stats"):
         stats = {}
         # Check if the coordinator has data
         if coordinator.data:
             stats = coordinator.data.get("stats", {})
 
+        # Check if all stats are allowed
+        allow_all = configuration.stats_key_exists("all")
+
         # Create a sensor for each key in the stats
         for key, value in stats.items():
-            # Transform the key to a more readable format
-            title = key.replace("_", " ").title()
-
-            # Skip the key if it is not a valid state
+            # Skip the key if it is not a valid state (e.g. rating distribution dict)
             if isinstance(value, dict):
                 continue
+
+            # Skip if not allowed in config
+            if not allow_all and not configuration.stats_key_exists(key):
+                continue
+
+            # Transform the key to a more readable format
+            title = key.replace("_", " ").title()
 
             # Create the sensor
             sensor = TraktStateSensor(
