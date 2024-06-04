@@ -13,13 +13,6 @@ class Configuration:
     data: Dict[str, Any]
 
     @property
-    def ignore_collected(self) -> bool:
-        try:
-            return self.conf["ignore_collected"]
-        except KeyError:
-            return False
-
-    @property
     def conf(self) -> Dict[str, Any]:
         return self.data[DOMAIN]["configuration"]
 
@@ -91,6 +84,12 @@ class Configuration:
 
     def get_anticipated_max_medias(self, identifier: str) -> int:
         return self.get_max_medias(identifier, "anticipated")
+
+    def anticipated_exclude_collected(self, identifier: str) -> bool:
+        try:
+            return self.conf["anticipated"][identifier]["exclude_collected"]
+        except KeyError:
+            return False
     # end of new code
 
     def source_exists(self, source: str) -> bool:
