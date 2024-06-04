@@ -98,20 +98,6 @@ trakt_tv:
           - friends
       only_upcoming:
         max_medias: 5
-    lists:
-      - friendly_name: "Christmas Watchlist"
-        private_list: True # Set to True if the list is your own private list
-        list_id: "christmas-watchlist" # Can be the slug, because it's a private list
-        max_medias: 5
-      - friendly_name: "2024 Academy Awards"
-        list_id: 26885014
-        max_medias: 5
-        sort_by: rating_trakt
-        sort_order: desc
-      - friendly_name: "Star Trek Movies"
-        list_id: 967660
-        media_type: "movie" # Filters the list to only show movies
-        max_medias: 5
 ```
 
 #### Integration Settings
@@ -209,7 +195,25 @@ There are four parameters for each sensor:
     - `listed_at` - Date the item was added to the list
   - `sort_order` _OPTIONAL_ should be a string for the sort order. Possible values are `asc`, `desc`. Default is `asc`
 
-#### Example
+###### Lists Example
+```yaml
+    lists:
+      - friendly_name: "Christmas Watchlist"
+        private_list: True # Set to True if the list is your own private list
+        list_id: "christmas-watchlist" # Can be the slug, because it's a private list
+        max_medias: 5
+      - friendly_name: "2024 Academy Awards"
+        list_id: 26885014
+        max_medias: 5
+        sort_by: rating_trakt # Sort by Trakt user rating instead of lsit rank
+        sort_order: desc
+      - friendly_name: "Star Trek Movies"
+        list_id: 967660
+        media_type: "movie" # Filters the list to only show movies
+        max_medias: 5
+```
+
+#### Configuration Example
 
 For example, adding only the following to `configuration.yaml` will create two sensors.
 One with the next 10 TV episodes in the next 30 days and another with the next 5 movies coming out in the next 45 days:
