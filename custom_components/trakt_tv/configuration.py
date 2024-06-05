@@ -78,6 +78,9 @@ class Configuration:
     def get_recommendation_max_medias(self, identifier: str) -> int:
         return self.get_max_medias(identifier, "recommendation")
 
+    def stats_key_exists(self, key: str) -> bool:
+        return key in self.conf["sensors"]["stats"]
+
     def source_exists(self, source: str) -> bool:
         try:
             self.conf["sensors"][source]

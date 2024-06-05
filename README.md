@@ -175,6 +175,51 @@ There are three parameters for each sensor:
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
   You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
 
+##### Stats sensors
+
+Creates individual sensors giving all of your stats about the movies, shows, and episodes you have watched, collected, and rated.
+Add `sensors` > `stats` with a list of the sensors you want to enable. You can enable all of them instead by adding `all` to the list.
+
+The available stats are available:
+ - `movies_plays`
+ - `movies_watched`
+ - `movies_minutes`
+ - `movies_collected`
+ - `movies_ratings`
+ - `movies_comments`
+ - `shows_watched`
+ - `shows_collected`
+ - `shows_ratings`
+ - `shows_comments`
+ - `seasons_ratings`
+ - `seasons_comments`
+ - `episodes_plays`
+ - `episodes_watched`
+ - `episodes_minutes`
+ - `episodes_collected`
+ - `episodes_ratings`
+ - `episodes_comments`
+ - `network_friends`
+ - `network_followers`
+ - `network_following`
+ - `ratings_total`
+
+###### Stats Example
+```yaml
+trakt_tv:
+  sensors:
+    # Create sensors for all available stats
+    stats:
+      - all
+    
+    # OR
+    
+    # Create sensors for specific stats (see available stats above)
+    stats:
+      - episodes_plays
+      - movies_minutes
+```
+
 #### Example
 
 For example, adding only the following to `configuration.yaml` will create two sensors.
