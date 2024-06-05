@@ -396,11 +396,8 @@ class TraktApi:
             "get", f"{path}?limit={limit}&ignore_collected={ignore_collected}"
         )
 
-    async def fetch_anticipated_medias(self, configured_kinds: "list[TraktKind]"):
-        ANTICIPATED_KINDS = [
-            TraktKind.ANTICIPATED_MOVIE,
-            TraktKind.ANTICIPATED_SHOW,
-        ]
+    async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
+        from ..models.kind import ANTICIPATED_KINDS
 
         kinds = []
         for kind in configured_kinds:
