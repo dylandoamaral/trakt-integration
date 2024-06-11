@@ -69,7 +69,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
-    
     for trakt_kind in TraktKind:
         if trakt_kind != TraktKind.LIST:
             continue

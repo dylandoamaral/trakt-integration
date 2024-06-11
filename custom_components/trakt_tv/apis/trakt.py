@@ -390,7 +390,6 @@ class TraktApi:
 
         return res
 
-
     async def fetch_list(
         self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str
     ):
@@ -415,7 +414,6 @@ class TraktApi:
         path = f"{path}?extended=full"
 
         return await self.request("get", path)
-
 
     async def fetch_lists(self, configured_kind: TraktKind):
 
@@ -469,7 +467,6 @@ class TraktApi:
 
         return {configured_kind: res}
 
-      
     async def fetch_stats(self):
         # Load data
         data = await self.request("get", f"users/me/stats")
@@ -484,7 +481,6 @@ class TraktApi:
                 stats[key] = value
 
         return stats
-
 
     async def retrieve_data(self):
         async with timeout(1800):
