@@ -175,6 +175,44 @@ There are three parameters for each sensor:
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
   You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
 
+##### Lists sensor
+
+Lists sensor allows you to fetch both public and private lists from Trakt, each list will be a sensor. The items in the list will be sorted by their rank on Trakt.
+
+There are four parameters for each sensor:
+
+  - `friendly_name` **MANDATORY** should be a string for the name of the sensor. This has to be unique for each list.
+  - `list_id` **MANDATORY** should be the Trakt list ID. For public lists the ID has to be numeric, for private lists the ID can be either the numeric ID or the slug from the URL. To get the numeric ID of a public list, copy the link address of the list before opening it or open the Report List window. This will give you a URL like `https://trakt.tv/lists/2142753`. The `2142753` part is the numeric ID you need to use.   
+  - `private_list` _OPTIONAL_ has to be set to `true` if using your own private list. Default is `false`
+  - `media_type` _OPTIONAL_ can be used to filter the media type within the list, possible values are `show`, `movie`, `episode`. Default is blank, which will show all media types
+  - `max_medias` _OPTIONAL_ should be a positive number for how many items to grab. Default is `3`
+  - `sort_by` _OPTIONAL_ should be a string for how to sort the list. Default is `rank`. Possible values are:
+    - `rank` - Placement in the list
+    - `rating` - TMDB rating 
+    - `rating_trakt` - Trakt rating
+    - `runtime`
+    - `released`
+    - `listed_at` - Date the item was added to the list
+  - `sort_order` _OPTIONAL_ should be a string for the sort order. Possible values are `asc`, `desc`. Default is `asc`
+
+###### Lists Example
+```yaml
+    lists:
+      - friendly_name: "Christmas Watchlist"
+        private_list: True # Set to True if the list is your own private list
+        list_id: "christmas-watchlist" # Can be the slug, because it's a private list
+        max_medias: 5
+      - friendly_name: "2024 Academy Awards"
+        list_id: 26885014
+        max_medias: 5
+        sort_by: rating_trakt # Sort by Trakt user rating instead of lsit rank
+        sort_order: desc
+      - friendly_name: "Star Trek Movies"
+        list_id: 967660
+        media_type: "movie" # Filters the list to only show movies
+        max_medias: 5
+```
+
 ##### Stats sensors
 
 Creates individual sensors giving all of your stats about the movies, shows, and episodes you have watched, collected, and rated.
@@ -220,7 +258,7 @@ trakt_tv:
       - movies_minutes
 ```
 
-#### Example
+#### Configuration Example
 
 For example, adding only the following to `configuration.yaml` will create two sensors.
 One with the next 10 TV episodes in the next 30 days and another with the next 5 movies coming out in the next 45 days:

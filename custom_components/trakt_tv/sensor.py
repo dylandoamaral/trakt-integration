@@ -69,6 +69,25 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
+    for trakt_kind in TraktKind:
+        if trakt_kind != TraktKind.LIST:
+            continue
+
+        identifier = trakt_kind.value.identifier
+
+        if configuration.source_exists(identifier):
+            for list_entry in configuration.get_sensor_config(identifier):
+                sensor = TraktSensor(
+                    hass=hass,
+                    config_entry=list_entry,
+                    coordinator=coordinator,
+                    trakt_kind=trakt_kind,
+                    source=identifier,
+                    prefix=f"Trakt List {list_entry['friendly_name']}",
+                    mdi_icon="mdi:view-list",
+                )
+                sensors.append(sensor)
+
     # Add sensors for stats
     if configuration.source_exists("stats"):
         stats = {}
@@ -133,13 +152,26 @@ class TraktSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
+        if not self.trakt_kind.value.name:
+            return f"{self.prefix}"
         return f"{self.prefix} {self.trakt_kind.value.name}"
 
     @property
     def medias(self):
-        if self.coordinator.data:
-            return self.coordinator.data.get(self.source, {}).get(self.trakt_kind, None)
-        return None
+        if not self.coordinator.data:
+            return None
+
+        if self.trakt_kind == TraktKind.LIST:
+            try:
+                name = self.config_entry["friendly_name"]
+                return self.coordinator.data[self.source][self.trakt_kind][name]
+            except KeyError:
+                return None
+
+        try:
+            return self.coordinator.data[self.source][self.trakt_kind]
+        except KeyError:
+            return None
 
     @property
     def configuration(self):
@@ -152,10 +184,17 @@ class TraktSensor(Entity):
 
     @property
     def data(self):
-        if self.medias:
-            max_medias = self.configuration["max_medias"]
-            return self.medias.to_homeassistant()[0 : max_medias + 1]
-        return []
+        if not self.medias:
+            return []
+
+        if self.trakt_kind == TraktKind.LIST:
+            sort_by = self.config_entry["sort_by"]
+            sort_order = self.config_entry["sort_order"]
+            max_medias = self.config_entry["max_medias"]
+            return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
+
+        max_medias = self.configuration["max_medias"]
+        return self.medias.to_homeassistant()[0 : max_medias + 1]
 
     @property
     def state(self):

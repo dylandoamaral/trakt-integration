@@ -7,9 +7,9 @@ from .media import Media, Movie, Show
 @dataclass
 class CalendarInformation:
     identifier: str
-    name: str
+    name: str | None
     path: str
-    model: Media
+    model: Media | None
 
 
 class TraktKind(Enum):
@@ -23,6 +23,7 @@ class TraktKind(Enum):
     NEXT_TO_WATCH_UPCOMING = CalendarInformation(
         "only_upcoming", "Only Upcoming", "shows", Show
     )
+    LIST = CalendarInformation("lists", None, "lists/{list_id}/items", None)
 
     @classmethod
     def from_string(cls, string):
