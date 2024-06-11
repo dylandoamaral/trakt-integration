@@ -84,6 +84,9 @@ class Configuration:
         except KeyError:
             return []
 
+    def stats_key_exists(self, key: str) -> bool:
+        return key in self.conf["sensors"]["stats"]
+
     def source_exists(self, source: str) -> bool:
         try:
             self.conf["sensors"][source]

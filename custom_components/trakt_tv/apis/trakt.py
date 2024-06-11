@@ -390,6 +390,7 @@ class TraktApi:
 
         return res
 
+
     async def fetch_list(
         self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str
     ):
@@ -414,6 +415,7 @@ class TraktApi:
         path = f"{path}?extended=full"
 
         return await self.request("get", path)
+
 
     async def fetch_lists(self, configured_kind: TraktKind):
 
@@ -467,6 +469,23 @@ class TraktApi:
 
         return {configured_kind: res}
 
+      
+    async def fetch_stats(self):
+        # Load data
+        data = await self.request("get", f"users/me/stats")
+
+        # Flatten data dictionary
+        stats = {}
+        for key, value in data.items():
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    stats[f"{key}_{sub_key}"] = sub_value
+            else:
+                stats[key] = value
+
+        return stats
+
+
     async def retrieve_data(self):
         async with timeout(1800):
             configuration = Configuration(data=self.hass.data)
@@ -500,6 +519,7 @@ class TraktApi:
                 "lists": lambda: self.fetch_lists(
                     configured_kind=TraktKind.LIST,
                 ),
+                "stats": lambda: self.fetch_stats(),
             }
 
             """First, let's configure which sensors we need depending on configuration"""
@@ -523,10 +543,15 @@ class TraktApi:
                     sources.append(sub_source)
                     coroutine_sources_data.append(source_function.get(sub_source)())
 
-            """Finally let's add the lists sensors if needed"""
+            """Add the lists sensors"""
             if configuration.source_exists("lists"):
                 sources.append("lists")
                 coroutine_sources_data.append(source_function.get("lists")())
+
+            """ Add user stats """
+            if configuration.source_exists("stats"):
+                sources.append("stats")
+                coroutine_sources_data.append(source_function.get("stats")())
 
             sources_data = await gather(*coroutine_sources_data)
 
