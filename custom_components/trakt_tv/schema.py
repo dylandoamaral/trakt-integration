@@ -41,9 +41,7 @@ def sensors_schema() -> Dict[str, Any]:
         "all_upcoming": upcoming_schema(),
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
-        # start of new code
         "anticipated": anticipated_schema(),
-        # end of new code
     }
 
 
@@ -79,7 +77,6 @@ def recommendation_schema() -> Dict[str, Any]:
     return subschemas
 
 
-# start of new code
 def anticipated_schema() -> Dict[str, Any]:
     subschemas = {}
     for trakt_kind in ANTICIPATED_KINDS:
@@ -89,7 +86,6 @@ def anticipated_schema() -> Dict[str, Any]:
         }
 
     return subschemas
-# end of new code
 
 
 configuration_schema = dictionary_to_schema(domain_schema(), extra=ALLOW_EXTRA)

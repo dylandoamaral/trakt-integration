@@ -390,10 +390,9 @@ class TraktApi:
 
         return res
 
-    # start of new code
     async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
         return await self.request(
-            "get", f"{path}?limit={limit}&ignore_collected={ignore_collected}"
+            "get", f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}"
         )
 
     async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
@@ -426,7 +425,7 @@ class TraktApi:
         for trakt_kind, raw_medias in zip(kinds, data):
             if raw_medias is not None:
                 medias = [
-                    trakt_kind.value.model.from_trakt(media) for media in raw_medias
+                    trakt_kind.value.model.from_trakt(media["movie" if trakt_kind == TraktKind.ANTICIPATED_MOVIE else "show"]) for media in raw_medias
                 ]
                 await gather(
                     *[media.get_more_information(language) for media in medias]
@@ -434,7 +433,6 @@ class TraktApi:
                 res[trakt_kind] = Medias(medias)
 
         return res
-    # end of new code
 
     async def retrieve_data(self):
         async with timeout(1800):
@@ -455,11 +453,9 @@ class TraktApi:
                 "recommendation": lambda kinds: self.fetch_recommendations(
                     configured_kinds=kinds,
                 ),
-                # start of new code
                 "anticipated": lambda kinds: self.fetch_anticipated_medias(
                     configured_kinds=kinds,
                 ),
-                # end of new code
                 "all": lambda: self.fetch_next_to_watch(
                     configured_kind=TraktKind.NEXT_TO_WATCH_ALL,
                 ),
@@ -478,9 +474,7 @@ class TraktApi:
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
-                # start of new code
                 "anticipated",
-                # end of new code
             ]:
                 if configuration.source_exists(source):
                     sources.append(source)
