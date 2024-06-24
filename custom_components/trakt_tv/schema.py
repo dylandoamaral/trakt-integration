@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytz
 from dateutil.tz import tzlocal
@@ -38,12 +38,11 @@ def domain_schema() -> Schema:
 def sensors_schema() -> Dict[str, Any]:
     return {
         "upcoming": upcoming_schema(),
-        "all_upcoming": upcoming_schema(),
+        "all_upcoming": all_upcoming_schema(),
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
-        # start of new code
         "anticipated": anticipated_schema(),
-        # end of new code
+        "stats": Schema(stats_schema()),
     }
 
 
@@ -79,7 +78,6 @@ def recommendation_schema() -> Dict[str, Any]:
     return subschemas
 
 
-# start of new code
 def anticipated_schema() -> Dict[str, Any]:
     subschemas = {}
     for trakt_kind in ANTICIPATED_KINDS:
@@ -89,7 +87,33 @@ def anticipated_schema() -> Dict[str, Any]:
         }
 
     return subschemas
-# end of new code
+
+def stats_schema() -> list[str]:
+    return [
+        "all",
+        "movies_plays",
+        "movies_watched",
+        "movies_minutes",
+        "movies_collected",
+        "movies_ratings",
+        "movies_comments",
+        "shows_watched",
+        "shows_collected",
+        "shows_ratings",
+        "shows_comments",
+        "seasons_ratings",
+        "seasons_comments",
+        "episodes_plays",
+        "episodes_watched",
+        "episodes_minutes",
+        "episodes_collected",
+        "episodes_ratings",
+        "episodes_comments",
+        "network_friends",
+        "network_followers",
+        "network_following",
+        "ratings_total",
+    ]
 
 
 configuration_schema = dictionary_to_schema(domain_schema(), extra=ALLOW_EXTRA)

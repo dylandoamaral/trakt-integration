@@ -41,6 +41,7 @@ class TraktApi:
     def cache(self) -> Dict[str, Any]:
         return self.hass.data[DOMAIN].get("cache", {})
 
+
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
         if not self.oauth_session.valid_token:
@@ -258,8 +259,6 @@ class TraktApi:
         ):
             return None
 
-        configuration = Configuration(data=self.hass.data)
-
         max_medias = configuration.get_upcoming_max_medias(identifier, all_medias)
         language = configuration.get_language()
 
@@ -390,7 +389,21 @@ class TraktApi:
 
         return res
 
-    # start of new code
+    async def fetch_stats(self):
+        # Load data
+        data = await self.request("get", f"users/me/stats")
+
+        # Flatten data dictionary
+        stats = {}
+        for key, value in data.items():
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    stats[f"{key}_{sub_key}"] = sub_value
+            else:
+                stats[key] = value
+
+        return stats
+
     async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
         return await self.request(
             "get", f"{path}?limit={limit}&ignore_collected={ignore_collected}"
@@ -434,7 +447,6 @@ class TraktApi:
                 res[trakt_kind] = Medias(medias)
 
         return res
-    # end of new code
 
     async def retrieve_data(self):
         async with timeout(1800):
@@ -455,11 +467,9 @@ class TraktApi:
                 "recommendation": lambda kinds: self.fetch_recommendations(
                     configured_kinds=kinds,
                 ),
-                # start of new code
                 "anticipated": lambda kinds: self.fetch_anticipated_medias(
                     configured_kinds=kinds,
                 ),
-                # end of new code
                 "all": lambda: self.fetch_next_to_watch(
                     configured_kind=TraktKind.NEXT_TO_WATCH_ALL,
                 ),
@@ -471,6 +481,7 @@ class TraktApi:
                     configured_kind=TraktKind.NEXT_TO_WATCH_UPCOMING,
                     only_upcoming=True,
                 ),
+                "stats": lambda: self.fetch_stats(),
             }
 
             """First, let's configure which sensors we need depending on configuration"""
@@ -478,9 +489,7 @@ class TraktApi:
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
-                # start of new code
                 "anticipated",
-                # end of new code
             ]:
                 if configuration.source_exists(source):
                     sources.append(source)
@@ -496,6 +505,11 @@ class TraktApi:
                 if configuration.next_to_watch_identifier_exists(sub_source):
                     sources.append(sub_source)
                     coroutine_sources_data.append(source_function.get(sub_source)())
+
+            """ Load user stats """
+            if configuration.source_exists("stats"):
+                sources.append("stats")
+                coroutine_sources_data.append(source_function.get("stats")())
 
             sources_data = await gather(*coroutine_sources_data)
 
