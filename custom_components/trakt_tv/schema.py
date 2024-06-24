@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytz
 from dateutil.tz import tzlocal
@@ -42,6 +42,7 @@ def sensors_schema() -> Dict[str, Any]:
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
         "anticipated": anticipated_schema(),
+        "stats": Schema(stats_schema()),
     }
 
 
@@ -86,6 +87,33 @@ def anticipated_schema() -> Dict[str, Any]:
         }
 
     return subschemas
+
+def stats_schema() -> list[str]:
+    return [
+        "all",
+        "movies_plays",
+        "movies_watched",
+        "movies_minutes",
+        "movies_collected",
+        "movies_ratings",
+        "movies_comments",
+        "shows_watched",
+        "shows_collected",
+        "shows_ratings",
+        "shows_comments",
+        "seasons_ratings",
+        "seasons_comments",
+        "episodes_plays",
+        "episodes_watched",
+        "episodes_minutes",
+        "episodes_collected",
+        "episodes_ratings",
+        "episodes_comments",
+        "network_friends",
+        "network_followers",
+        "network_following",
+        "ratings_total",
+    ]
 
 
 configuration_schema = dictionary_to_schema(domain_schema(), extra=ALLOW_EXTRA)

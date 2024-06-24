@@ -390,6 +390,21 @@ class TraktApi:
 
         return res
 
+    async def fetch_stats(self):
+        # Load data
+        data = await self.request("get", f"users/me/stats")
+
+        # Flatten data dictionary
+        stats = {}
+        for key, value in data.items():
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    stats[f"{key}_{sub_key}"] = sub_value
+            else:
+                stats[key] = value
+
+        return stats
+
     async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
         return await self.request(
             "get", f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}"
@@ -467,6 +482,7 @@ class TraktApi:
                     configured_kind=TraktKind.NEXT_TO_WATCH_UPCOMING,
                     only_upcoming=True,
                 ),
+                "stats": lambda: self.fetch_stats(),
             }
 
             """First, let's configure which sensors we need depending on configuration"""
@@ -490,6 +506,11 @@ class TraktApi:
                 if configuration.next_to_watch_identifier_exists(sub_source):
                     sources.append(sub_source)
                     coroutine_sources_data.append(source_function.get(sub_source)())
+
+            """ Load user stats """
+            if configuration.source_exists("stats"):
+                sources.append("stats")
+                coroutine_sources_data.append(source_function.get("stats")())
 
             sources_data = await gather(*coroutine_sources_data)
 
