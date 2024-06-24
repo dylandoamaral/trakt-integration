@@ -259,6 +259,8 @@ class TraktApi:
         ):
             return None
 
+        configuration = Configuration(data=self.hass.data)
+
         max_medias = configuration.get_upcoming_max_medias(identifier, all_medias)
         language = configuration.get_language()
 
@@ -406,7 +408,7 @@ class TraktApi:
 
     async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
         return await self.request(
-            "get", f"{path}?limit={limit}&ignore_collected={ignore_collected}"
+            "get", f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}"
         )
 
     async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
@@ -439,7 +441,7 @@ class TraktApi:
         for trakt_kind, raw_medias in zip(kinds, data):
             if raw_medias is not None:
                 medias = [
-                    trakt_kind.value.model.from_trakt(media) for media in raw_medias
+                    trakt_kind.value.model.from_trakt(media["movie" if trakt_kind == TraktKind.ANTICIPATED_MOVIE else "show"]) for media in raw_medias
                 ]
                 await gather(
                     *[media.get_more_information(language) for media in medias]

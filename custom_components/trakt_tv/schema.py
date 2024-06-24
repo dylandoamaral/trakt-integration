@@ -38,7 +38,7 @@ def domain_schema() -> Schema:
 def sensors_schema() -> Dict[str, Any]:
     return {
         "upcoming": upcoming_schema(),
-        "all_upcoming": all_upcoming_schema(),
+        "all_upcoming": upcoming_schema(),
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
         "anticipated": anticipated_schema(),

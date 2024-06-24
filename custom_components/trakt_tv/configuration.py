@@ -56,11 +56,15 @@ class Configuration:
     def next_to_watch_identifier_exists(self, identifier: str) -> bool:
         return self.identifier_exists(identifier, "next_to_watch")
 
-    def upcoming_identifier_exists(self, identifier: str, all_medias: bool = False) -> bool:
+    def upcoming_identifier_exists(
+        self, identifier: str, all_medias: bool = False
+    ) -> bool:
         source = "all_upcoming" if all_medias else "upcoming"
         return self.identifier_exists(identifier, source)
 
-    def get_upcoming_days_to_fetch(self, identifier: str, all_medias: bool = False) -> int:
+    def get_upcoming_days_to_fetch(
+        self, identifier: str, all_medias: bool = False
+    ) -> int:
         source = "all_upcoming" if all_medias else "upcoming"
         return self.get_days_to_fetch(identifier, source)
 
@@ -82,7 +86,7 @@ class Configuration:
 
     def anticipated_exclude_collected(self, identifier: str) -> bool:
         try:
-            return self.conf["anticipated"][identifier]["exclude_collected"]
+            return self.conf["sensors"]["anticipated"][identifier]["exclude_collected"]
         except KeyError:
             return False
 
