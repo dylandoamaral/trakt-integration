@@ -163,6 +163,9 @@ class Movie(Media):
             "airdate": self.released.replace(tzinfo=None).isoformat() + "Z",
         }
 
+        if self.ids.slug is not None:
+            default["deep_link"] = f"https://trakt.tv/movies/{self.ids.slug}"
+
         return default
 
 
@@ -277,6 +280,9 @@ class Show(Media):
                 "episode": self.episode.title,
                 "number": f"S{season}E{episode}",
             }
+
+        if self.ids.slug is not None:
+            default["deep_link"] = f"https://trakt.tv/shows/{self.ids.slug}"
 
         return default
 
