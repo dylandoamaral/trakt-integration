@@ -20,4 +20,5 @@ RUN apt-get install -y python3 \
     && mkdir -p /config \
     && ln -sf "/workspaces/trakt-integration/.devcontainer/configuration.yaml" /config/configuration.yaml \
     && ln -sf "/workspaces/trakt-integration/.devcontainer/ui-lovelace.yaml" /config/ui-lovelace.yaml \
+    && ln -sf "/workspaces/trakt-integration/.devcontainer/www" /config/www \
     && ln -sf "/workspaces/trakt-integration/custom_components" /config/custom_components
