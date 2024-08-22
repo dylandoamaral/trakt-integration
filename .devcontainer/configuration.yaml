@@ -5,6 +5,14 @@ logger:
   logs:
     custom_components.trakt_tv: debug
 
+frontend:
+
+lovelace:
+  mode: yaml
+  resources:
+    - url: /local/custom-lovelace/upcoming-media-card/upcoming-media-card.js?v=0.1.1
+      type: js
+
 trakt_tv:
   language: fr
   timezone: Europe/Paris
