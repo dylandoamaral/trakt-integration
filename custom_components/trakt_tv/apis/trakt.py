@@ -441,7 +441,7 @@ class TraktApi:
         for trakt_kind, raw_medias in zip(kinds, data):
             if raw_medias is not None:
                 medias = [
-                    trakt_kind.value.model.from_trakt(media["movie" if trakt_kind == TraktKind.ANTICIPATED_MOVIE else "show"]) for media in raw_medias
+                    trakt_kind.value.model.from_trakt(media[trakt_kind.identifier]) for media in raw_medias
                 ]
                 await gather(
                     *[media.get_more_information(language) for media in medias]
