@@ -302,14 +302,16 @@ class Show(Media):
             episode = self.episode.number
             episode = episode if episode >= 10 else f"0{episode}"
 
-            default = {
-                **default,
-                "episode": self.episode.title,
-                "number": f"S{season}E{episode}",
-            }
+            default["episode"] = self.episode.title
+            default["number"] = f"S{season}E{episode}"
 
-        if self.ids.slug is not None:
-            default["deep_link"] = f"https://trakt.tv/shows/{self.ids.slug}"
+            if self.ids.slug is not None:
+                deep_link = f"https://trakt.tv/shows/{self.ids.slug}/seasons/{season}/episodes/{episode}"
+                default["deep_link"] = deep_link
+        else:
+            if self.ids.slug is not None:
+                default["deep_link"] = f"https://trakt.tv/shows/{self.ids.slug}"
+
         if self.trailer is not None:
             default["trailer"] = self.trailer
         if self.summary is not None:
