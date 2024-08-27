@@ -78,6 +78,18 @@ class Configuration:
     def get_recommendation_max_medias(self, identifier: str) -> int:
         return self.get_max_medias(identifier, "recommendation")
 
+    def anticipated_identifier_exists(self, identifier: str) -> bool:
+        return self.identifier_exists(identifier, "anticipated")
+
+    def get_anticipated_max_medias(self, identifier: str) -> int:
+        return self.get_max_medias(identifier, "anticipated")
+
+    def anticipated_exclude_collected(self, identifier: str) -> bool:
+        try:
+            return self.conf["sensors"]["anticipated"][identifier]["exclude_collected"]
+        except KeyError:
+            return False
+
     def stats_key_exists(self, key: str) -> bool:
         return key in self.conf["sensors"]["stats"]
 

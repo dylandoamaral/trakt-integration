@@ -41,6 +41,7 @@ class TraktApi:
     def cache(self) -> Dict[str, Any]:
         return self.hass.data[DOMAIN].get("cache", {})
 
+
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
         if not self.oauth_session.valid_token:
@@ -405,6 +406,50 @@ class TraktApi:
 
         return stats
 
+    async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
+        return await self.request(
+            "get", f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}"
+        )
+
+    async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
+        from ..models.kind import ANTICIPATED_KINDS
+
+        kinds = []
+        for kind in configured_kinds:
+            if kind in ANTICIPATED_KINDS:
+                kinds.append(kind)
+            else:
+                LOGGER.warn(
+                    f"Anticipated doesn't support {kind}, you should remove it from the configuration."
+                )
+
+        configuration = Configuration(data=self.hass.data)
+        language = configuration.get_language()
+        data = await gather(
+            *[
+                self.fetch_anticipated(
+                    kind.value.path,
+                    configuration.get_anticipated_max_medias(kind.value.identifier),
+                    configuration.anticipated_exclude_collected(kind.value.identifier)
+                )
+                for kind in kinds
+            ]
+        )
+
+        res = {}
+
+        for trakt_kind, raw_medias in zip(kinds, data):
+            if raw_medias is not None:
+                medias = [
+                    trakt_kind.value.model.from_trakt(media[trakt_kind.value.identifier]) for media in raw_medias
+                ]
+                await gather(
+                    *[media.get_more_information(language) for media in medias]
+                )
+                res[trakt_kind] = Medias(medias)
+
+        return res
+
     async def retrieve_data(self):
         async with timeout(1800):
             configuration = Configuration(data=self.hass.data)
@@ -422,6 +467,9 @@ class TraktApi:
                     all_medias=True,
                 ),
                 "recommendation": lambda kinds: self.fetch_recommendations(
+                    configured_kinds=kinds,
+                ),
+                "anticipated": lambda kinds: self.fetch_anticipated_medias(
                     configured_kinds=kinds,
                 ),
                 "all": lambda: self.fetch_next_to_watch(
@@ -443,6 +491,7 @@ class TraktApi:
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
+                "anticipated",
             ]:
                 if configuration.source_exists(source):
                     sources.append(source)
