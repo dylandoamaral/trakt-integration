@@ -7,7 +7,7 @@ from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES
-from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind, ANTICIPATED_KINDS
+from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 
 def dictionary_to_schema(
@@ -87,6 +87,7 @@ def anticipated_schema() -> Dict[str, Any]:
         }
 
     return subschemas
+
 
 def stats_schema() -> list[str]:
     return [

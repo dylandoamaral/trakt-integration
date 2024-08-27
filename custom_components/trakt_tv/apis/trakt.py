@@ -41,7 +41,6 @@ class TraktApi:
     def cache(self) -> Dict[str, Any]:
         return self.hass.data[DOMAIN].get("cache", {})
 
-
     async def async_get_access_token(self) -> str:
         """Return a valid access token."""
         if not self.oauth_session.valid_token:
@@ -408,7 +407,8 @@ class TraktApi:
 
     async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
         return await self.request(
-            "get", f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}"
+            "get",
+            f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}",
         )
 
     async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
@@ -430,7 +430,7 @@ class TraktApi:
                 self.fetch_anticipated(
                     kind.value.path,
                     configuration.get_anticipated_max_medias(kind.value.identifier),
-                    configuration.anticipated_exclude_collected(kind.value.identifier)
+                    configuration.anticipated_exclude_collected(kind.value.identifier),
                 )
                 for kind in kinds
             ]
@@ -441,7 +441,10 @@ class TraktApi:
         for trakt_kind, raw_medias in zip(kinds, data):
             if raw_medias is not None:
                 medias = [
-                    trakt_kind.value.model.from_trakt(media[trakt_kind.value.identifier]) for media in raw_medias
+                    trakt_kind.value.model.from_trakt(
+                        media[trakt_kind.value.identifier]
+                    )
+                    for media in raw_medias
                 ]
                 await gather(
                     *[media.get_more_information(language) for media in medias]
