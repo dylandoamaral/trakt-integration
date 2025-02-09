@@ -18,7 +18,7 @@ from ..const import API_HOST, DOMAIN
 from ..exception import TraktException
 from ..models.kind import BASIC_KINDS, UPCOMING_KINDS, TraktKind
 from ..models.media import Medias
-from ..utils import cache_insert, cache_retrieve, deserialize_json
+from ..utils import cache_insert, cache_retrieve, deserialize_json, extract_value_from
 
 LOGGER = logging.getLogger(__name__)
 
@@ -167,15 +167,21 @@ class TraktApi:
 
         for show in raw_shows or []:
             try:
-                ids = show["show"]["ids"]
+                ids = extract_value_from(show, ["show", "ids"])
+                identifier = extract_value_from(ids, ["slug"])
+            except Exception as e:
+                LOGGER.warning(f"Raw show {show} can't be extracted because: {e}")
+                continue
 
+            try:
                 is_excluded = self.is_show_excluded(show, excluded_shows, hidden_shows)
 
                 if is_excluded:
                     continue
 
-                identifier = ids["slug"]
-                raw_show_progress = await self.fetch_show_progress(ids["trakt"])
+                trakt_identifier = extract_value_from(ids, ["trakt"])
+
+                raw_show_progress = await self.fetch_show_progress(trakt_identifier)
                 is_finished = self.is_show_finished(raw_show_progress)
 
                 """aired date and completed date will always be the same for next to watch tvshows if you're up-to-date"""
@@ -183,22 +189,28 @@ class TraktApi:
                     continue
 
                 raw_next_episode = await self.fetch_show_informations(
-                    ids["trakt"],
-                    raw_show_progress["next_episode"]["season"],
-                    raw_show_progress["next_episode"]["number"],
+                    trakt_identifier,
+                    extract_value_from(raw_show_progress, ["next_episode", "season"]),
+                    extract_value_from(raw_show_progress, ["next_episode", "number"]),
                 )
 
                 show["episode"] = raw_next_episode
-                show["first_aired"] = raw_next_episode["first_aired"]
+
+                if raw_next_episode.get("first_aired") is not None:
+                    show["first_aired"] = raw_next_episode["first_aired"]
+
                 raw_medias.append(show)
             except IndexError:
                 LOGGER.warning(f"Show {identifier} doesn't contain any trakt ID")
                 continue
+            except TraktException as e:
+                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
+                continue
             except TypeError as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted due to {e}")
+                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
                 continue
             except KeyError as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted due to {e}")
+                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
                 continue
 
         return raw_medias
