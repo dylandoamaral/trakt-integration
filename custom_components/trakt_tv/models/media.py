@@ -11,7 +11,6 @@ from custom_components.trakt_tv.apis.tmdb import (
     get_show_trailer,
 )
 from custom_components.trakt_tv.utils import parse_utc_date
-from ..const import UPCOMING_DATA_FORMAT
 
 first_item = {
     "title_default": "$title",
