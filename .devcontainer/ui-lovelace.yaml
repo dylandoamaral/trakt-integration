@@ -1,0 +1,7 @@
+views:
+  - title: Test environment
+    cards:
+      - type: custom:upcoming-media-card
+        entity: sensor.trakt_next_to_watch_all
+        enable_tooltips: true
+        enable_trailers: true

@@ -7,7 +7,7 @@ from homeassistant.helpers.entity import Entity
 
 from .configuration import Configuration
 from .const import DOMAIN
-from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +50,25 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 mdi_icon="mdi:movie",
             )
             sensors.append(sensor)
+
+    for trakt_kind in TraktKind:
+        if trakt_kind in ANTICIPATED_KINDS:
+            identifier = trakt_kind.value.identifier
+            if configuration.anticipated_identifier_exists(identifier):
+                sensor = TraktSensor(
+                    hass=hass,
+                    config_entry=config_entry,
+                    coordinator=coordinator,
+                    trakt_kind=trakt_kind,
+                    source="anticipated",
+                    prefix="Trakt Anticipated",
+                    mdi_icon=(
+                        "mdi:movie"
+                        if trakt_kind == TraktKind.ANTICIPATED_MOVIE
+                        else "mdi:television"
+                    ),
+                )
+                sensors.append(sensor)
 
     for trakt_kind in TraktKind:
         if trakt_kind not in NEXT_TO_WATCH_KINDS:

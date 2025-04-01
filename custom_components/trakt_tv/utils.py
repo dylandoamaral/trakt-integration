@@ -94,6 +94,18 @@ def cache_retrieve(cache: Dict[str, Any], key: str) -> Optional[Any]:
         return None
 
 
+def extract_value_from(data: Dict[str, Any], path: List[str]) -> Any:
+    """
+    Extract a value from a dictionary following a path. or throw an exception if the path is not valid.
+    """
+    try:
+        for key in path:
+            data = data[key]
+        return data
+    except KeyError:
+        raise TraktException(f"Can't extract the value from the following path: {path}")
+
+
 def parse_utc_date(date_str: Optional[str]) -> Optional[datetime]:
     """
     Parse an ISO date string (all dates returned from Trakt) to a datetime object.

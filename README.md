@@ -175,6 +175,43 @@ There are three parameters for each sensor:
 - `exclude` should be a list of shows you'd like to exclude, since it's based on your watched history. To find keys to put there, go on trakt.tv, search for a show, click on it, notice the url slug, copy/paste it. So, if I want to hide "Friends", I'll do the steps mentioned above, then land on https://trakt.tv/shows/friends, I'll just have to copy/paste the last part, `friends`, that's it
   You can also use the Trakt.tv "hidden" function to hide a show from [your calendar](https://trakt.tv/calendars/my/shows) or the [progress page](https://trakt.tv/users/<username>/progress)
 
+##### Anticipated Sensors
+
+- `sensor.trakt_anticipated_shows`: This sensor displays the most anticipated TV shows on Trakt.
+- `sensor.trakt_anticipated_movies`: This sensor displays the most anticipated movies on Trakt.
+
+### Example Configuration
+
+To enable these sensors, you can use the following configuration:
+
+```yaml
+trakt_tv:
+  language: en
+  timezone: America/Los_Angeles
+  sensors:
+    anticipated:
+      movie:
+        max_medias: 10
+      show:
+        max_medias: 10
+```
+
+You can also exclude collected items from these sensors:
+
+```yaml
+trakt_tv:
+  language: en
+  timezone: America/Los_Angeles
+  sensors:
+    anticipated:
+      movie:
+        exclude_collected: true
+        max_medias: 10
+      show:
+        exclude_collected: true
+        max_medias: 10
+```
+
 ##### Lists sensor
 
 Lists sensor allows you to fetch both public and private lists from Trakt, each list will be a sensor. The items in the list will be sorted by their rank on Trakt.

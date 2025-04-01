@@ -7,7 +7,7 @@ from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES, SORT_BY_OPTIONS, SORT_HOW_OPTIONS
-from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 
 def dictionary_to_schema(
@@ -42,6 +42,7 @@ def sensors_schema() -> Dict[str, Any]:
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
         "lists": Schema([lists_schema()]),
+        "anticipated": anticipated_schema(),
         "stats": Schema(stats_schema()),
     }
 
@@ -73,6 +74,17 @@ def recommendation_schema() -> Dict[str, Any]:
     for trakt_kind in BASIC_KINDS:
         subschemas[trakt_kind.value.identifier] = {
             Required("max_medias", default=3): cv.positive_int,
+        }
+
+    return subschemas
+
+
+def anticipated_schema() -> Dict[str, Any]:
+    subschemas = {}
+    for trakt_kind in ANTICIPATED_KINDS:
+        subschemas[trakt_kind.value.identifier] = {
+            Required("max_medias", default=3): cv.positive_int,
+            Required("exclude_collected", default=False): cv.boolean,
         }
 
     return subschemas

@@ -17,8 +17,8 @@ from ..configuration import Configuration
 from ..const import API_HOST, DOMAIN
 from ..exception import TraktException
 from ..models.kind import BASIC_KINDS, UPCOMING_KINDS, TraktKind
-from ..models.media import Episode, Medias, Movie, Show
-from ..utils import cache_insert, cache_retrieve, deserialize_json
+from ..models.media import Medias
+from ..utils import cache_insert, cache_retrieve, deserialize_json, extract_value_from
 
 LOGGER = logging.getLogger(__name__)
 
@@ -167,15 +167,21 @@ class TraktApi:
 
         for show in raw_shows or []:
             try:
-                ids = show["show"]["ids"]
+                ids = extract_value_from(show, ["show", "ids"])
+                identifier = extract_value_from(ids, ["slug"])
+            except Exception as e:
+                LOGGER.warning(f"Raw show {show} can't be extracted because: {e}")
+                continue
 
+            try:
                 is_excluded = self.is_show_excluded(show, excluded_shows, hidden_shows)
 
                 if is_excluded:
                     continue
 
-                identifier = ids["slug"]
-                raw_show_progress = await self.fetch_show_progress(ids["trakt"])
+                trakt_identifier = extract_value_from(ids, ["trakt"])
+
+                raw_show_progress = await self.fetch_show_progress(trakt_identifier)
                 is_finished = self.is_show_finished(raw_show_progress)
 
                 """aired date and completed date will always be the same for next to watch tvshows if you're up-to-date"""
@@ -183,22 +189,28 @@ class TraktApi:
                     continue
 
                 raw_next_episode = await self.fetch_show_informations(
-                    ids["trakt"],
-                    raw_show_progress["next_episode"]["season"],
-                    raw_show_progress["next_episode"]["number"],
+                    trakt_identifier,
+                    extract_value_from(raw_show_progress, ["next_episode", "season"]),
+                    extract_value_from(raw_show_progress, ["next_episode", "number"]),
                 )
 
                 show["episode"] = raw_next_episode
-                show["first_aired"] = raw_next_episode["first_aired"]
+
+                if raw_next_episode.get("first_aired") is not None:
+                    show["first_aired"] = raw_next_episode["first_aired"]
+
                 raw_medias.append(show)
             except IndexError:
                 LOGGER.warning(f"Show {identifier} doesn't contain any trakt ID")
                 continue
+            except TraktException as e:
+                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
+                continue
             except TypeError as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted due to {e}")
+                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
                 continue
             except KeyError as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted due to {e}")
+                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
                 continue
 
         return raw_medias
@@ -482,6 +494,54 @@ class TraktApi:
 
         return stats
 
+    async def fetch_anticipated(self, path: str, limit: int, ignore_collected: bool):
+        return await self.request(
+            "get",
+            f"{path}/anticipated?limit={limit}&ignore_collected={ignore_collected}",
+        )
+
+    async def fetch_anticipated_medias(self, configured_kinds: list[TraktKind]):
+        from ..models.kind import ANTICIPATED_KINDS
+
+        kinds = []
+        for kind in configured_kinds:
+            if kind in ANTICIPATED_KINDS:
+                kinds.append(kind)
+            else:
+                LOGGER.warn(
+                    f"Anticipated doesn't support {kind}, you should remove it from the configuration."
+                )
+
+        configuration = Configuration(data=self.hass.data)
+        language = configuration.get_language()
+        data = await gather(
+            *[
+                self.fetch_anticipated(
+                    kind.value.path,
+                    configuration.get_anticipated_max_medias(kind.value.identifier),
+                    configuration.anticipated_exclude_collected(kind.value.identifier),
+                )
+                for kind in kinds
+            ]
+        )
+
+        res = {}
+
+        for trakt_kind, raw_medias in zip(kinds, data):
+            if raw_medias is not None:
+                medias = [
+                    trakt_kind.value.model.from_trakt(
+                        media[trakt_kind.value.identifier]
+                    )
+                    for media in raw_medias
+                ]
+                await gather(
+                    *[media.get_more_information(language) for media in medias]
+                )
+                res[trakt_kind] = Medias(medias)
+
+        return res
+
     async def retrieve_data(self):
         async with timeout(1800):
             configuration = Configuration(data=self.hass.data)
@@ -499,6 +559,9 @@ class TraktApi:
                     all_medias=True,
                 ),
                 "recommendation": lambda kinds: self.fetch_recommendations(
+                    configured_kinds=kinds,
+                ),
+                "anticipated": lambda kinds: self.fetch_anticipated_medias(
                     configured_kinds=kinds,
                 ),
                 "all": lambda: self.fetch_next_to_watch(
@@ -523,6 +586,7 @@ class TraktApi:
                 "upcoming",
                 "all_upcoming",
                 "recommendation",
+                "anticipated",
             ]:
                 if configuration.source_exists(source):
                     sources.append(source)

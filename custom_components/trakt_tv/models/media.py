@@ -1,10 +1,17 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
+from asyncio import gather
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Type
 
-from custom_components.trakt_tv.apis.tmdb import get_movie_data, get_show_data
+from custom_components.trakt_tv.apis.tmdb import (
+    get_movie_data,
+    get_movie_trailer,
+    get_show_data,
+    get_show_trailer,
+)
 from custom_components.trakt_tv.utils import parse_utc_date
+from ..const import UPCOMING_DATA_FORMAT
 
 first_item = {
     "title_default": "$title",
@@ -78,7 +85,7 @@ class Media(ABC):
 
         return {k: v for k, v in default.items() if v is not None}
 
-    async def get_more_information(self, language):
+    async def get_more_information(self, language: str):
         """
         Get information from other API calls to complete the trakt movie.
 
@@ -93,6 +100,8 @@ class Movie(Media):
     """
 
     genres: List[str] = field(default_factory=list)
+    trailer: Optional[str] = None
+    summary: Optional[str] = None
     poster: Optional[str] = None
     fanart: Optional[str] = None
     rating: Optional[int] = None
@@ -119,15 +128,23 @@ class Movie(Media):
             rating_trakt=movie.get("rating"),
         )
 
-    async def get_more_information(self, language):
+    async def get_more_information(self, language: str):
         """
         Get information from other API calls to complete the trakt movie.
 
         :param language: The favorite language of the user
         """
-        data = await get_movie_data(self.ids.tmdb, language)
+        data, trailer = await gather(
+            get_movie_data(self.ids.tmdb, language),
+            get_movie_trailer(self.ids.tmdb, language),
+        )
+
         if title := data.get("title"):
             self.name = title
+        if trailer:
+            self.trailer = trailer
+        if summary := data.get("overview"):
+            self.summary = summary
         if poster := data.get("poster_path"):
             self.poster = f"https://image.tmdb.org/t/p/w500{poster}"
         if fanart := data.get("backdrop_path"):
@@ -161,6 +178,13 @@ class Movie(Media):
             "airdate": self.released.replace(tzinfo=None).isoformat() + "Z",
         }
 
+        if self.ids.slug is not None:
+            default["deep_link"] = f"https://trakt.tv/movies/{self.ids.slug}"
+        if self.trailer is not None:
+            default["trailer"] = self.trailer
+        if self.summary is not None:
+            default["summary"] = self.summary
+
         return default
 
 
@@ -188,6 +212,8 @@ class Episode:
 
 @dataclass
 class Show(Media):
+    trailer: Optional[str] = None
+    summary: Optional[str] = None
     poster: Optional[str] = None
     fanart: Optional[str] = None
     genres: List[str] = field(default_factory=list)
@@ -220,9 +246,23 @@ class Show(Media):
             rating_trakt=show.get("rating"),
         )
 
-    def update_common_information(self, data: Dict[str, Any]):
+    async def get_more_information(self, language: str):
+        """
+        Get information from other API calls to complete the trakt movie.
+
+        :param language: The favorite language of the user
+        """
+        data, trailer = await gather(
+            get_show_data(self.ids.tmdb, language),
+            get_show_trailer(self.ids.tmdb, language),
+        )
+
         if title := data.get("title"):
             self.name = title
+        if trailer:
+            self.trailer = trailer
+        if summary := data.get("overview"):
+            self.summary = summary
         if poster := data.get("poster_path"):
             self.poster = f"https://image.tmdb.org/t/p/w500{poster}"
         if fanart := data.get("backdrop_path"):
@@ -240,15 +280,6 @@ class Show(Media):
             else:
                 # If we really can't find the release date, we set it to the minimum date
                 self.released = datetime.min
-
-    async def get_more_information(self, language):
-        """
-        Get information from other API calls to complete the trakt movie.
-
-        :param language: The favorite language of the user
-        """
-        data = await get_show_data(self.ids.tmdb, language)
-        self.update_common_information(data)
 
     def to_homeassistant(self) -> Dict[str, Any]:
         """
@@ -270,11 +301,20 @@ class Show(Media):
             episode = self.episode.number
             episode = episode if episode >= 10 else f"0{episode}"
 
-            default = {
-                **default,
-                "episode": self.episode.title,
-                "number": f"S{season}E{episode}",
-            }
+            default["episode"] = self.episode.title
+            default["number"] = f"S{season}E{episode}"
+
+            if self.ids.slug is not None:
+                deep_link = f"https://trakt.tv/shows/{self.ids.slug}/seasons/{season}/episodes/{episode}"
+                default["deep_link"] = deep_link
+        else:
+            if self.ids.slug is not None:
+                default["deep_link"] = f"https://trakt.tv/shows/{self.ids.slug}"
+
+        if self.trailer is not None:
+            default["trailer"] = self.trailer
+        if self.summary is not None:
+            default["summary"] = self.summary
 
         return default
 
