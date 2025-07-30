@@ -7,7 +7,13 @@ from homeassistant.helpers.entity import Entity
 
 from .configuration import Configuration
 from .const import DOMAIN
-from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.kind import (
+    ANTICIPATED_KINDS,
+    BASIC_KINDS,
+    NEXT_TO_WATCH_KINDS,
+    WATCHLIST_KINDS,
+    TraktKind,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -85,6 +91,21 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 source=identifier,
                 prefix="Trakt Next To Watch",
                 mdi_icon="mdi:calendar",
+            )
+            sensors.append(sensor)
+
+    for trakt_kind in WATCHLIST_KINDS:
+        identifier = trakt_kind.value.identifier
+
+        if configuration.watchlist_identifier_exists(identifier):
+            sensor = TraktSensor(
+                hass=hass,
+                config_entry=config_entry,
+                coordinator=coordinator,
+                trakt_kind=trakt_kind,
+                source="watchlist",
+                prefix="Trakt Watchlist",
+                mdi_icon="mdi:movie",
             )
             sensors.append(sensor)
 

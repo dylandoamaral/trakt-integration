@@ -7,7 +7,13 @@ from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
 from .const import DOMAIN, LANGUAGE_CODES
-from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.kind import (
+    ANTICIPATED_KINDS,
+    BASIC_KINDS,
+    NEXT_TO_WATCH_KINDS,
+    WATCHLIST_KINDS,
+    TraktKind,
+)
 
 
 def dictionary_to_schema(
@@ -42,6 +48,7 @@ def sensors_schema() -> Dict[str, Any]:
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
         "anticipated": anticipated_schema(),
+        "watchlist": watchlist_schema(),
         "stats": Schema(stats_schema()),
     }
 
@@ -84,6 +91,23 @@ def anticipated_schema() -> Dict[str, Any]:
         subschemas[trakt_kind.value.identifier] = {
             Required("max_medias", default=3): cv.positive_int,
             Required("exclude_collected", default=False): cv.boolean,
+        }
+
+    return subschemas
+
+
+def watchlist_schema() -> Dict[str, Any]:
+    """Schema for the watchlist sensor."""
+    subschemas = {}
+    for trakt_kind in WATCHLIST_KINDS:
+        subschemas[trakt_kind.value.identifier] = {
+            Required("only_released", default=True): cv.boolean,
+            Required("only_unwatched", default=True): cv.boolean,
+            Required("max_medias", default=20): cv.positive_int,
+            Required("sort_by", default="released"): In(
+                ["released", "title", "added", "rating"]
+            ),
+            Required("sort_order", default="asc"): In(["asc", "desc"]),
         }
 
     return subschemas

@@ -90,6 +90,39 @@ class Configuration:
         except KeyError:
             return False
 
+    def watchlist_identifier_exists(self, identifier: str) -> bool:
+        return self.identifier_exists(identifier, "watchlist")
+
+    def get_watchlist_max_medias(self, identifier: str) -> int:
+        try:
+            return self.conf["sensors"]["watchlist"][identifier]["max_medias"]
+        except KeyError:
+            return 20
+
+    def get_watchlist_sort_by(self, identifier: str) -> str:
+        try:
+            return self.conf["sensors"]["watchlist"][identifier]["sort_by"]
+        except KeyError:
+            return "released"
+
+    def get_watchlist_sort_order(self, identifier: str) -> str:
+        try:
+            return self.conf["sensors"]["watchlist"][identifier]["sort_order"]
+        except KeyError:
+            return "asc"
+
+    def is_watchlist_only_released(self, identifier: str) -> bool:
+        try:
+            return self.conf["sensors"]["watchlist"][identifier]["only_released"]
+        except KeyError:
+            return True
+
+    def is_watchlist_only_unwatched(self, identifier: str) -> bool:
+        try:
+            return self.conf["sensors"]["watchlist"][identifier]["only_unwatched"]
+        except KeyError:
+            return True
+
     def stats_key_exists(self, key: str) -> bool:
         return key in self.conf["sensors"]["stats"]
 

@@ -10,7 +10,15 @@ def yaml():
         DOMAIN: {
             "configuration": {
                 "language": "fr",
-                "sensors": {"upcoming": {"movie": {"days_to_fetch": 60}}},
+                "sensors": {
+                    "upcoming": {"movie": {"days_to_fetch": 60}},
+                    "watchlist": {
+                        "movie": {
+                            "sort_by": "rating",
+                            "sort_order": "desc",
+                        }
+                    },
+                },
             }
         }
     }
