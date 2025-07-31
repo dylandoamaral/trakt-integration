@@ -148,6 +148,7 @@ class TraktSensor(Entity):
         self.source = source
         self.prefix = prefix
         self.mdi_icon = mdi_icon
+        self._attr_unique_id = f"{self.config_entry.entry_id}_{self.source}_{self.trakt_kind.value.identifier}"
 
     @property
     def name(self):
