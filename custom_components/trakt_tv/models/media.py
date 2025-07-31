@@ -177,7 +177,6 @@ class Movie(Media):
             "runtime": self.runtime,
             "release": "$day, $date $time",
             "airdate": self.released.replace(tzinfo=None).isoformat() + "Z",
-            "imdb_id": self.ids.imdb,
             "ids": asdict(self.ids),
         }
 
@@ -295,7 +294,6 @@ class Show(Media):
             **self.common_information(),
             "release": "$day, $date $time",
             "airdate": self.released.replace(tzinfo=None).isoformat() + "Z",
-            "imdb_id": self.ids.imdb,
             "ids": asdict(self.ids),
         }
 
