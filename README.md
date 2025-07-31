@@ -212,6 +212,39 @@ trakt_tv:
         max_medias: 10
 ```
 
+##### Watchlist Movies Sensor
+
+This sensor displays movies from your personal Trakt.tv watchlist. It's highly configurable to help you decide what to watch next.
+
+-   `sensor.trakt_watchlist_movies`: Creates a sensor with movies from your watchlist.
+
+###### Configuration
+
+```yaml
+trakt_tv:
+  sensors:
+    watchlist:
+      movie:
+        # Only include movies that have already been released.
+        # Default: true
+        only_released: true
+        # Exclude movies that you have already marked as watched or
+        # added to your collection on Trakt.
+        # Default: true
+        only_unwatched: true
+        # The maximum number of movies to show.
+        # Default: 20
+        max_medias: 20
+        # How to sort the list of movies.
+        # Options: "released", "title", "added", "rating"
+        # Default: "released"
+        sort_by: released
+        # The sort order.
+        # Options: "asc", "desc"
+        # Default: "asc"
+        sort_order: asc
+```
+
 ##### Stats sensors
 
 Creates individual sensors giving all of your stats about the movies, shows, and episodes you have watched, collected, and rated.
