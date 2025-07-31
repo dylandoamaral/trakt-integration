@@ -11,7 +11,6 @@ from .models.kind import (
     ANTICIPATED_KINDS,
     BASIC_KINDS,
     NEXT_TO_WATCH_KINDS,
-    WATCHLIST_KINDS,
     TraktKind,
 )
 
@@ -94,20 +93,17 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
-    for trakt_kind in WATCHLIST_KINDS:
-        identifier = trakt_kind.value.identifier
-
-        if configuration.watchlist_identifier_exists(identifier):
-            sensor = TraktSensor(
-                hass=hass,
-                config_entry=config_entry,
-                coordinator=coordinator,
-                trakt_kind=trakt_kind,
-                source="watchlist",
-                prefix="Trakt Watchlist",
-                mdi_icon="mdi:movie",
-            )
-            sensors.append(sensor)
+    if configuration.watchlist_identifier_exists("movie"):
+        sensor = TraktSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.MOVIE,
+            source="watchlist",
+            prefix="Trakt Watchlist",
+            mdi_icon="mdi:movie",
+        )
+        sensors.append(sensor)
 
     # Add sensors for stats
     if configuration.source_exists("stats"):

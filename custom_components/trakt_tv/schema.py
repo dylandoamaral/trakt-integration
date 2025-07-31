@@ -11,7 +11,6 @@ from .models.kind import (
     ANTICIPATED_KINDS,
     BASIC_KINDS,
     NEXT_TO_WATCH_KINDS,
-    WATCHLIST_KINDS,
     TraktKind,
 )
 
@@ -98,9 +97,8 @@ def anticipated_schema() -> Dict[str, Any]:
 
 def watchlist_schema() -> Dict[str, Any]:
     """Schema for the watchlist sensor."""
-    subschemas = {}
-    for trakt_kind in WATCHLIST_KINDS:
-        subschemas[trakt_kind.value.identifier] = {
+    return {
+        "movie": {
             Required("only_released", default=True): cv.boolean,
             Required("only_unwatched", default=True): cv.boolean,
             Required("max_medias", default=20): cv.positive_int,
@@ -109,8 +107,7 @@ def watchlist_schema() -> Dict[str, Any]:
             ),
             Required("sort_order", default="asc"): In(["asc", "desc"]),
         }
-
-    return subschemas
+    }
 
 
 def stats_schema() -> list[str]:

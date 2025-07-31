@@ -25,7 +25,6 @@ class TraktKind(Enum):
     )
     ANTICIPATED_MOVIE = CalendarInformation("movie", "Movies", "movies", Movie)
     ANTICIPATED_SHOW = CalendarInformation("show", "Shows", "shows", Show)
-    WATCHLIST_MOVIE = CalendarInformation("movie", "Watchlist Movies", "movies", Movie)
 
     @classmethod
     def from_string(cls, string):
@@ -57,8 +56,4 @@ NEXT_TO_WATCH_KINDS = [
 ANTICIPATED_KINDS = [
     TraktKind.ANTICIPATED_MOVIE,
     TraktKind.ANTICIPATED_SHOW,
-]
-
-WATCHLIST_KINDS = [
-    TraktKind.WATCHLIST_MOVIE,
 ]
