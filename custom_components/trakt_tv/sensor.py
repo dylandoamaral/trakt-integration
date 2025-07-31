@@ -7,12 +7,7 @@ from homeassistant.helpers.entity import Entity
 
 from .configuration import Configuration
 from .const import DOMAIN
-from .models.kind import (
-    ANTICIPATED_KINDS,
-    BASIC_KINDS,
-    NEXT_TO_WATCH_KINDS,
-    TraktKind,
-)
+from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 LOGGER = logging.getLogger(__name__)
 
