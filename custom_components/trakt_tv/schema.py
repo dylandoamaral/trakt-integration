@@ -42,6 +42,7 @@ def sensors_schema() -> Dict[str, Any]:
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
         "anticipated": anticipated_schema(),
+        "watchlist": watchlist_schema(),
         "stats": Schema(stats_schema()),
     }
 
@@ -87,6 +88,21 @@ def anticipated_schema() -> Dict[str, Any]:
         }
 
     return subschemas
+
+
+def watchlist_schema() -> Dict[str, Any]:
+    """Schema for the watchlist sensor."""
+    return {
+        "movie": {
+            Required("only_released", default=True): cv.boolean,
+            Required("only_unwatched", default=True): cv.boolean,
+            Required("max_medias", default=20): cv.positive_int,
+            Required("sort_by", default="released"): In(
+                ["released", "title", "added", "rating"]
+            ),
+            Required("sort_order", default="asc"): In(["asc", "desc"]),
+        }
+    }
 
 
 def stats_schema() -> list[str]:
