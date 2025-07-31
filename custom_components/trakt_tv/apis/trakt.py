@@ -494,24 +494,35 @@ class TraktApi:
             watched_movies = await self.request("get", "sync/watched/movies")
             collected_movies = await self.request("get", "sync/collection/movies")
 
-            watched_ids = {movie['movie']['ids']['trakt'] for movie in watched_movies} if watched_movies else set()
-            collected_ids = {movie['movie']['ids']['trakt'] for movie in collected_movies} if collected_movies else set()
+            watched_ids = (
+                {movie["movie"]["ids"]["trakt"] for movie in watched_movies}
+                if watched_movies
+                else set()
+            )
+            collected_ids = (
+                {movie["movie"]["ids"]["trakt"] for movie in collected_movies}
+                if collected_movies
+                else set()
+            )
 
             if watched_ids or collected_ids:
                 unwatched_medias = []
                 for media in medias:
-                    if media.ids.trakt not in watched_ids and media.ids.trakt not in collected_ids:
+                    if (
+                        media.ids.trakt not in watched_ids
+                        and media.ids.trakt not in collected_ids
+                    ):
                         unwatched_medias.append(media)
                 medias = unwatched_medias
 
         # Filtering for "only_released"
         only_released = configuration.is_watchlist_only_released(identifier)
         if only_released:
-            timezoned_now = datetime.now(
-                pytz.timezone(configuration.get_timezone())
-            )
+            timezoned_now = datetime.now(pytz.timezone(configuration.get_timezone()))
             medias = [
-                media for media in medias if media.released and media.released <= timezoned_now
+                media
+                for media in medias
+                if media.released and media.released <= timezoned_now
             ]
 
         # Manual sorting for "rating" or applying sort_order for API-sorted results
