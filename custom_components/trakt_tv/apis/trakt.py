@@ -405,7 +405,7 @@ class TraktApi:
     async def fetch_list(
         self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str
     ):
-        """ Fetch the list. If user_path is True, the list will be fetched from the user end-point """
+        """Fetch the list. If user_path is True, the list will be fetched from the user end-point"""
         # Add the user path if needed
         if user_path:
             path = f"users/me/{path}"
