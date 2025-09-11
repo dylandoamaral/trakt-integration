@@ -405,10 +405,21 @@ class TraktApi:
     async def fetch_list(
         self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str
     ):
-        """Fetch the list, if user_path is True, the list will be fetched from the user end-point"""
+        """ Fetch the list. If user_path is True, the list will be fetched from the user end-point """
         # Add the user path if needed
         if user_path:
             path = f"users/me/{path}"
+
+            # Drop /lists and /items from the path if fetching watchlist or favorites, Trakt API has a different path for these
+            if list_id in ["watchlist", "favorites"]:
+                path = path.replace("/lists", "").replace("/items", "")
+        else:
+            # Check that the list_id is numeric for public lists
+            if not list_id.isnumeric():
+                LOGGER.warn(
+                    f"Public lists only support numeric list_id, {list_id} is not valid"
+                )
+                return None
 
         # Replace the list_id in the path
         path = path.replace("{list_id}", list_id)

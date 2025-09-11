@@ -263,15 +263,16 @@ There are four parameters for each sensor:
   - `runtime`
   - `released`
   - `listed_at` - Date the item was added to the list
+  - `imdb_rating`, `tmdb_rating`, `rt_tomatometer`, `rt_audience`, `metascore`, `votes`, `imdb_votes`, and `tmdb_votes` are also available for VIP users, will default to `rank` if not a VIP user
 - `sort_order` _OPTIONAL_ should be a string for the sort order. Possible values are `asc`, `desc`. Default is `asc`
 
 ###### Lists Example
 
 ```yaml
 lists:
-  - friendly_name: "Christmas Watchlist"
+  - friendly_name: "Favorites"
     private_list: True # Set to True if the list is your own private list
-    list_id: "christmas-watchlist" # Can be the slug, because it's a private list
+    list_id: "favorites" # Can be the slug, because it's a private list
     max_medias: 5
   - friendly_name: "2024 Academy Awards"
     list_id: 26885014
