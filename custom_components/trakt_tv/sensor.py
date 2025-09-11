@@ -88,6 +88,18 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
+    if configuration.watchlist_identifier_exists("movie"):
+        sensor = TraktSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.MOVIE,
+            source="watchlist",
+            prefix="Trakt Watchlist",
+            mdi_icon="mdi:movie",
+        )
+        sensors.append(sensor)
+
     for trakt_kind in TraktKind:
         if trakt_kind != TraktKind.LIST:
             continue
@@ -167,6 +179,7 @@ class TraktSensor(Entity):
         self.source = source
         self.prefix = prefix
         self.mdi_icon = mdi_icon
+        self._attr_unique_id = f"{self.config_entry.entry_id}_{self.source}_{self.trakt_kind.value.identifier}"
 
     @property
     def name(self):

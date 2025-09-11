@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from asyncio import gather
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Type
 
@@ -175,6 +175,7 @@ class Movie(Media):
             "runtime": self.runtime,
             "release": "$day, $date $time",
             "airdate": self.released.replace(tzinfo=None).isoformat() + "Z",
+            "ids": asdict(self.ids),
         }
 
         if self.ids.slug is not None:
@@ -291,6 +292,7 @@ class Show(Media):
             **self.common_information(),
             "release": "$day, $date $time",
             "airdate": self.released.replace(tzinfo=None).isoformat() + "Z",
+            "ids": asdict(self.ids),
         }
 
         if self.episode:
