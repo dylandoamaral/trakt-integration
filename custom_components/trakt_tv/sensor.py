@@ -110,12 +110,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             for list_entry in configuration.get_sensor_config(identifier):
                 sensor = TraktSensor(
                     hass=hass,
-                    config_entry=list_entry,
+                    config_entry=config_entry,
                     coordinator=coordinator,
                     trakt_kind=trakt_kind,
                     source=identifier,
                     prefix=f"Trakt List {list_entry['friendly_name']}",
                     mdi_icon="mdi:view-list",
+                    sensor_data=list_entry,
+                    sensor_identifier=list_entry["friendly_name"]
+                    .replace(" ", "_")
+                    .lower(),
                 )
                 sensors.append(sensor)
 
@@ -170,6 +174,8 @@ class TraktSensor(Entity):
         source: str,
         prefix: str,
         mdi_icon: str,
+        sensor_data: dict | None = None,
+        sensor_identifier: str | None = None,
     ):
         """Initialize the sensor."""
         self.hass = hass
@@ -179,7 +185,8 @@ class TraktSensor(Entity):
         self.source = source
         self.prefix = prefix
         self.mdi_icon = mdi_icon
-        self._attr_unique_id = f"{self.config_entry.entry_id}_{self.source}_{self.trakt_kind.value.identifier}"
+        self.sensor_data = sensor_data
+        self._attr_unique_id = f"{self.config_entry.entry_id}_{self.source}_{self.trakt_kind.value.identifier}{f'_{sensor_identifier}' if sensor_identifier else ''}"
 
     @property
     def name(self):
@@ -195,7 +202,7 @@ class TraktSensor(Entity):
 
         if self.trakt_kind == TraktKind.LIST:
             try:
-                name = self.config_entry["friendly_name"]
+                name = self.sensor_data["friendly_name"]
                 return self.coordinator.data[self.source][self.trakt_kind][name]
             except KeyError:
                 return None
@@ -220,9 +227,9 @@ class TraktSensor(Entity):
             return []
 
         if self.trakt_kind == TraktKind.LIST:
-            sort_by = self.config_entry["sort_by"]
-            sort_order = self.config_entry["sort_order"]
-            max_medias = self.config_entry["max_medias"]
+            sort_by = self.sensor_data["sort_by"]
+            sort_order = self.sensor_data["sort_order"]
+            max_medias = self.sensor_data["max_medias"]
             return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
 
         max_medias = self.configuration["max_medias"]
