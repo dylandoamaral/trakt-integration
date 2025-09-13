@@ -248,6 +248,8 @@ class TraktSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
+        if self.trakt_kind.value.unit:
+            return self.trakt_kind.value.unit
         return self.trakt_kind.value.path.split("/")[0]
 
     @property

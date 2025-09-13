@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from .media import Media, Movie, Show
 
@@ -9,7 +10,8 @@ class CalendarInformation:
     identifier: str
     name: str | None
     path: str
-    model: Media | None
+    model: Media
+    unit: Optional[str] = None
 
 
 class TraktKind(Enum):
@@ -23,7 +25,7 @@ class TraktKind(Enum):
     NEXT_TO_WATCH_UPCOMING = CalendarInformation(
         "only_upcoming", "Only Upcoming", "shows", Show
     )
-    LIST = CalendarInformation("lists", None, "lists/{list_id}/items", None)
+    LIST = CalendarInformation("lists", None, "lists/{list_id}/items", Media, "medias")
     ANTICIPATED_MOVIE = CalendarInformation("movie", "Movies", "movies", Movie)
     ANTICIPATED_SHOW = CalendarInformation("show", "Shows", "shows", Show)
 
