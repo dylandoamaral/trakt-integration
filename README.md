@@ -264,20 +264,22 @@ There are four parameters for each sensor:
 ###### Lists Example
 
 ```yaml
-lists:
-  - friendly_name: "Favorites"
-    private_list: True # Set to True if the list is your own private list
-    list_id: "favorites" # Can be the slug, because it's a private list
-    max_medias: 5
-  - friendly_name: "2024 Academy Awards"
-    list_id: 26885014
-    max_medias: 5
-    sort_by: rating_trakt # Sort by Trakt user rating instead of list rank
-    sort_order: desc
-  - friendly_name: "Star Trek Movies"
-    list_id: 967660
-    media_type: "movie" # Filters the list to only show movies
-    max_medias: 5
+trakt_tv:
+  sensors:
+    lists:
+      - friendly_name: "Favorites"
+        private_list: True # Set to True if the list is your own private list
+        list_id: "favorites" # Can be the slug, because it's a private list
+        max_medias: 5
+      - friendly_name: "2024 Academy Awards"
+        list_id: 26885014
+        max_medias: 5
+        sort_by: rating_trakt # Sort by Trakt user rating instead of list rank
+        sort_order: desc
+      - friendly_name: "Star Trek Movies"
+        list_id: 967660
+        media_type: "movie" # Filters the list to only show movies
+        max_medias: 5
 ```
 
 ##### Stats sensors

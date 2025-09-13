@@ -403,11 +403,11 @@ class TraktApi:
         return res
 
     async def fetch_list(
-        self, path: str, list_id: str, user_path: bool, max_items: int, media_type: str
+        self, path: str, list_id: str, is_user_path: bool, max_items: int, media_type: str
     ):
-        """Fetch the list. If user_path is True, the list will be fetched from the user end-point"""
+        """Fetch the list. If is_user_path is True, the list will be fetched from the user end-point"""
         # Add the user path if needed
-        if user_path:
+        if is_user_path:
             path = f"users/me/{path}"
 
             # Drop /lists and /items from the path if fetching watchlist or favorites, Trakt API has a different path for these
