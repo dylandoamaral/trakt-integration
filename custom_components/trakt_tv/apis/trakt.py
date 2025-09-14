@@ -63,7 +63,7 @@ class TraktApi:
             guidance = f"Too many retries, if you find this error, please raise an issue at https://github.com/dylandoamaral/trakt-integration/issues."
             raise TraktException(f"{error} {guidance}")
 
-    async def request(self, method, url, retry=10, **kwargs) -> ClientResponse:
+    async def request(self, method, url, retry=10, **kwargs) -> dict[str, Any]:
         """Make a request."""
         access_token = await self.async_get_access_token()
         client_id = self.hass.data[DOMAIN]["configuration"]["client_id"]
@@ -402,6 +402,99 @@ class TraktApi:
 
         return res
 
+    async def fetch_list(
+        self,
+        path: str,
+        list_id: str,
+        is_user_path: bool,
+        max_items: int,
+        media_type: str,
+    ):
+        """Fetch the list. If is_user_path is True, the list will be fetched from the user end-point"""
+        # Add the user path if needed
+        if is_user_path:
+            path = f"users/me/{path}"
+
+            # Drop /lists and /items from the path if fetching watchlist or favorites, Trakt API has a different path for these
+            if list_id in ["watchlist", "favorites"]:
+                path = path.replace("/lists", "").replace("/items", "")
+        else:
+            # Check that the list_id is numeric for public lists
+            if not list_id.isnumeric():
+                LOGGER.warn(
+                    f"Public lists only support numeric list_id, {list_id} is not valid"
+                )
+                return None
+
+        # Replace the list_id in the path
+        path = path.replace("{list_id}", list_id)
+
+        # Add media type filter to the path
+        if media_type:
+            # Check if the media type is supported
+            if Medias.trakt_to_class(media_type):
+                path = f"{path}/{media_type}"
+            else:
+                LOGGER.warn(f"Filtering list on {media_type} is not supported")
+                return None
+
+        # Add extended info used for sorting
+        path = f"{path}?extended=full"
+
+        return await self.request("get", path)
+
+    async def fetch_lists(self, configured_kind: TraktKind):
+
+        # Get config for all lists
+        configuration = Configuration(data=self.hass.data)
+        lists = configuration.get_sensor_config(configured_kind.value.identifier)
+
+        # Fetch the lists
+        data = await gather(
+            *[
+                self.fetch_list(
+                    configured_kind.value.path,
+                    list_config["list_id"],
+                    list_config["private_list"],
+                    list_config["max_medias"],
+                    list_config["media_type"],
+                )
+                for list_config in lists
+            ]
+        )
+
+        # Process the results
+        language = configuration.get_language()
+
+        res = {}
+        for list_config, raw_medias in zip(lists, data):
+            if raw_medias is not None:
+                medias = []
+                for media in raw_medias:
+                    # Get model based on media type in data
+                    media_type = media.get("type")
+                    model = Medias.trakt_to_class(media_type)
+
+                    if model:
+                        medias.append(model.from_trakt(media))
+                    else:
+                        LOGGER.warn(
+                            f"Media type {media_type} in {list_config['friendly_name']} is not supported"
+                        )
+
+                if not medias:
+                    LOGGER.warn(
+                        f"No entries found for list {list_config['friendly_name']}"
+                    )
+                    continue
+
+                await gather(
+                    *[media.get_more_information(language) for media in medias]
+                )
+                res[list_config["friendly_name"]] = Medias(medias)
+
+        return {configured_kind: res}
+
     async def fetch_stats(self):
         # Load data
         data = await self.request("get", f"users/me/stats")
@@ -572,6 +665,9 @@ class TraktApi:
                     configured_kind=TraktKind.NEXT_TO_WATCH_UPCOMING,
                     only_upcoming=True,
                 ),
+                "lists": lambda: self.fetch_lists(
+                    configured_kind=TraktKind.LIST,
+                ),
                 "stats": lambda: self.fetch_stats(),
             }
 
@@ -601,7 +697,12 @@ class TraktApi:
                     sources.append(sub_source)
                     coroutine_sources_data.append(source_function.get(sub_source)())
 
-            """ Load user stats """
+            """Add the lists sensors"""
+            if configuration.source_exists("lists"):
+                sources.append("lists")
+                coroutine_sources_data.append(source_function.get("lists")())
+
+            """ Add user stats """
             if configuration.source_exists("stats"):
                 sources.append("stats")
                 coroutine_sources_data.append(source_function.get("stats")())

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 from asyncio import gather
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Type
 
 from custom_components.trakt_tv.apis.tmdb import (
     get_movie_data,
@@ -10,8 +10,7 @@ from custom_components.trakt_tv.apis.tmdb import (
     get_show_data,
     get_show_trailer,
 )
-
-from ..const import UPCOMING_DATA_FORMAT
+from custom_components.trakt_tv.utils import parse_utc_date
 
 first_item = {
     "title_default": "$title",
@@ -79,6 +78,7 @@ class Media(ABC):
             "fanart": self.fanart,
             "genres": self.genres,
             "rating": self.rating,
+            "rating_trakt": self.rating_trakt,
             "studio": self.studio,
         }
 
@@ -107,6 +107,9 @@ class Movie(Media):
     runtime: Optional[int] = None
     studio: Optional[str] = None
     released: Optional[datetime] = None  # This one is actually mandatory
+    rank: Optional[int] = None
+    listed_at: Optional[datetime] = None
+    rating_trakt: Optional[int] = None
 
     @staticmethod
     def from_trakt(data) -> "Movie":
@@ -115,16 +118,13 @@ class Movie(Media):
         """
         movie = data if data.get("title") else data["movie"]
 
-        released = (
-            datetime.fromisoformat(data["released"]).replace(tzinfo=timezone.utc)
-            if data.get("released")
-            else None
-        )
-
         return Movie(
             name=movie["title"],
-            released=released,
+            released=parse_utc_date(data.get("released")),
             ids=Identifiers.from_trakt(movie),
+            rank=data.get("rank"),
+            listed_at=parse_utc_date(data.get("listed_at")),
+            rating_trakt=movie.get("rating"),
         )
 
     async def get_more_information(self, language: str):
@@ -159,9 +159,7 @@ class Movie(Media):
             self.studio = production_companies[0].get("name")
         if not self.released:
             if data.get("release_date"):
-                self.released = datetime.fromisoformat(data["release_date"]).replace(
-                    tzinfo=timezone.utc
-                )
+                self.released = parse_utc_date(data.get("release_date"))
             else:
                 self.released = datetime.min
 
@@ -223,6 +221,10 @@ class Show(Media):
     studio: Optional[str] = None
     episode: Optional[Episode] = None
     released: Optional[datetime] = None
+    runtime: Optional[int] = None
+    rank: Optional[int] = None
+    listed_at: Optional[datetime] = None
+    rating_trakt: Optional[int] = None
 
     @staticmethod
     def from_trakt(data) -> "Show":
@@ -231,21 +233,17 @@ class Show(Media):
         """
         show = data if data.get("title") else data["show"]
 
-        released = (
-            datetime.strptime(data["first_aired"], UPCOMING_DATA_FORMAT).replace(
-                tzinfo=timezone.utc
-            )
-            if data.get("first_aired")
-            else None
-        )
-
         episode = Episode.from_trakt(data["episode"]) if data.get("episode") else None
 
         return Show(
             name=show["title"],
             ids=Identifiers.from_trakt(show),
-            released=released,
+            released=parse_utc_date(data.get("first_aired")),
             episode=episode,
+            rank=data.get("rank"),
+            listed_at=parse_utc_date(data.get("listed_at")),
+            runtime=show.get("runtime"),
+            rating_trakt=show.get("rating"),
         )
 
     async def get_more_information(self, language: str):
@@ -326,13 +324,24 @@ class Show(Media):
 class Medias:
     items: List[Media]
 
-    def to_homeassistant(self) -> Dict[str, Any]:
+    def to_homeassistant(self, sort_by="released", sort_order="asc") -> Dict[str, Any]:
         """
         Convert the List of medias to recommendation data.
 
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        medias = sorted(self.items, key=lambda media: media.released)
+        medias = sorted(
+            self.items,
+            key=lambda media: getattr(media, sort_by),
+            reverse=sort_order == "desc",
+        )
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
+
+    @staticmethod
+    def trakt_to_class(
+        trakt_type: str,
+    ) -> Type[Show] | Type[Movie] | Type[Episode] | None:
+        type_to_class = {"show": Show, "episode": Show, "movie": Movie}
+        return type_to_class.get(trakt_type, None)

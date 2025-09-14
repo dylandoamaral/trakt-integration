@@ -100,6 +100,29 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         )
         sensors.append(sensor)
 
+    for trakt_kind in TraktKind:
+        if trakt_kind != TraktKind.LIST:
+            continue
+
+        identifier = trakt_kind.value.identifier
+
+        if configuration.source_exists(identifier):
+            for list_entry in configuration.get_sensor_config(identifier):
+                sensor = TraktSensor(
+                    hass=hass,
+                    config_entry=config_entry,
+                    coordinator=coordinator,
+                    trakt_kind=trakt_kind,
+                    source=identifier,
+                    prefix=f"Trakt List {list_entry['friendly_name']}",
+                    mdi_icon="mdi:view-list",
+                    sensor_data=list_entry,
+                    sensor_identifier=list_entry["friendly_name"]
+                    .replace(" ", "_")
+                    .lower(),
+                )
+                sensors.append(sensor)
+
     # Add sensors for stats
     if configuration.source_exists("stats"):
         stats = {}
@@ -151,6 +174,8 @@ class TraktSensor(Entity):
         source: str,
         prefix: str,
         mdi_icon: str,
+        sensor_data: dict | None = None,
+        sensor_identifier: str | None = None,
     ):
         """Initialize the sensor."""
         self.hass = hass
@@ -160,18 +185,32 @@ class TraktSensor(Entity):
         self.source = source
         self.prefix = prefix
         self.mdi_icon = mdi_icon
-        self._attr_unique_id = f"{self.config_entry.entry_id}_{self.source}_{self.trakt_kind.value.identifier}"
+        self.sensor_data = sensor_data
+        self._attr_unique_id = f"{self.config_entry.entry_id}_{self.source}_{self.trakt_kind.value.identifier}{f'_{sensor_identifier}' if sensor_identifier else ''}"
 
     @property
     def name(self):
         """Return the name of the sensor."""
+        if not self.trakt_kind.value.name:
+            return f"{self.prefix}"
         return f"{self.prefix} {self.trakt_kind.value.name}"
 
     @property
     def medias(self):
-        if self.coordinator.data:
-            return self.coordinator.data.get(self.source, {}).get(self.trakt_kind, None)
-        return None
+        if not self.coordinator.data:
+            return None
+
+        if self.trakt_kind == TraktKind.LIST:
+            try:
+                name = self.sensor_data["friendly_name"]
+                return self.coordinator.data[self.source][self.trakt_kind][name]
+            except KeyError:
+                return None
+
+        try:
+            return self.coordinator.data[self.source][self.trakt_kind]
+        except KeyError:
+            return None
 
     @property
     def configuration(self):
@@ -184,10 +223,17 @@ class TraktSensor(Entity):
 
     @property
     def data(self):
-        if self.medias:
-            max_medias = self.configuration["max_medias"]
-            return self.medias.to_homeassistant()[0 : max_medias + 1]
-        return []
+        if not self.medias:
+            return []
+
+        if self.trakt_kind == TraktKind.LIST:
+            sort_by = self.sensor_data["sort_by"]
+            sort_order = self.sensor_data["sort_order"]
+            max_medias = self.sensor_data["max_medias"]
+            return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
+
+        max_medias = self.configuration["max_medias"]
+        return self.medias.to_homeassistant()[0 : max_medias + 1]
 
     @property
     def state(self):
@@ -202,6 +248,8 @@ class TraktSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
+        if self.trakt_kind.value.unit:
+            return self.trakt_kind.value.unit
         return self.trakt_kind.value.path.split("/")[0]
 
     @property

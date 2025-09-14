@@ -123,6 +123,12 @@ class Configuration:
         except KeyError:
             return True
 
+    def get_sensor_config(self, identifier: str) -> list:
+        try:
+            return self.conf["sensors"][identifier]
+        except KeyError:
+            return []
+
     def stats_key_exists(self, key: str) -> bool:
         return key in self.conf["sensors"]["stats"]
 

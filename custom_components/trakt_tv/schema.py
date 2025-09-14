@@ -6,7 +6,7 @@ from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
-from .const import DOMAIN, LANGUAGE_CODES
+from .const import DOMAIN, LANGUAGE_CODES, SORT_BY_OPTIONS, SORT_HOW_OPTIONS
 from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 
@@ -41,6 +41,7 @@ def sensors_schema() -> Dict[str, Any]:
         "all_upcoming": upcoming_schema(),
         "next_to_watch": next_to_watch_schema(),
         "recommendation": recommendation_schema(),
+        "lists": Schema([lists_schema()]),
         "anticipated": anticipated_schema(),
         "watchlist": watchlist_schema(),
         "stats": Schema(stats_schema()),
@@ -103,6 +104,20 @@ def watchlist_schema() -> Dict[str, Any]:
             Required("sort_order", default="asc"): In(["asc", "desc"]),
         }
     }
+
+
+def lists_schema() -> dict[Required, Any]:
+    schema = {
+        Required("list_id"): cv.string,
+        Required("friendly_name"): cv.string,
+        Required("max_medias", default=3): cv.positive_int,
+        Required("private_list", default=False): cv.boolean,
+        Required("media_type", default=""): cv.string,
+        Required("sort_by", default="rank"): In(SORT_BY_OPTIONS),
+        Required("sort_order", default="asc"): In(SORT_HOW_OPTIONS),
+    }
+
+    return schema
 
 
 def stats_schema() -> list[str]:
