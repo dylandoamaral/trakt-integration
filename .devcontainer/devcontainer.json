@@ -1,37 +1,70 @@
 {
   "name": "TraktTV integration development",
-  "dockerFile": "./Dockerfile",
-  "context": "..",
+  "image": "ghcr.io/home-assistant/home-assistant:stable",
+
+  "runArgs": ["--privileged", "-v", "/run/dbus:/run/dbus:ro"],
+
   "appPort": ["8123:8123"],
-  "onCreateCommand": "pip install -r requirements.txt",
-  "extensions": [
-    "aaron-bond.better-comments",
-    "coenraads.bracket-pair-colorizer-2",
-    "davidanson.vscode-markdownlint",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "github.copilot",
-    "github.vscode-pull-request-github",
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    "redhat.vscode-yaml",
-    "yzhang.markdown-all-in-one"
+
+  "containerEnv": {
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/configuration.yaml,target=/config/configuration.yaml,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/ui-lovelace.yaml,target=/config/ui-lovelace.yaml,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/.devcontainer/www,target=/config/www,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind,consistency=cached"
   ],
-  "settings": {
-    "files.eol": "\n",
-    "editor.tabSize": 2,
-    "terminal.integrated.defaultProfile.linux": "zsh",
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true,
-    "files.trimTrailingWhitespace": true,
-    "markdown.extension.toc.githubCompatibility": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "files.watcherExclude": {
-      "**/.git/objects/**": true,
-      "**/.git/subtree-cache/**": true,
-      "**/node_modules/**": true,
-      "**/.hg/store/**": true,
-      "**/.rpt2_cache/**": true
+
+  "onCreateCommand": "pip install -r requirements.txt",
+
+  "overrideCommand": true,
+  "postStartCommand": "hass -c /config",
+
+  "postCreateCommand": [
+    "sh",
+    "-lc",
+    "apk update && apk add --no-cache zsh git wget make && RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c \"$(wget -qO- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\" || true"
+  ],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "aaron-bond.better-comments",
+        "coenraads.bracket-pair-colorizer-2",
+        "davidanson.vscode-markdownlint",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "github.copilot",
+        "github.vscode-pull-request-github",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.tabSize": 2,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
+        "markdown.extension.toc.githubCompatibility": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.extraPaths": [
+          "/usr/src/homeassistant",
+          "/usr/local/lib/python3.13/site-packages"
+        ],
+        "files.watcherExclude": {
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/node_modules/**": true,
+          "**/.hg/store/**": true,
+          "**/.rpt2_cache/**": true
+        }
+      }
     }
   }
 }

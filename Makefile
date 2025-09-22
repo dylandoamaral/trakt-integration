@@ -10,4 +10,5 @@ test:
 	pytest
 
 homeassistant:
+	killall hass || true
 	hass -c /config
