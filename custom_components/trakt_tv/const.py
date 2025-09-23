@@ -172,6 +172,51 @@ LANGUAGE_CODES = [
     "zu",
 ]
 
-SORT_BY_OPTIONS = ["rating", "rating_trakt", "rank", "runtime", "released", "listed_at"]
+# Default values
+DEFAULT_LANGUAGE = "en"
+DEFAULT_UPDATE_INTERVAL = 15  # minutes
+DEFAULT_DAYS_TO_FETCH = 90
+DEFAULT_MAX_MEDIAS = 5
 
-SORT_HOW_OPTIONS = ["asc", "desc"]
+# Config keys
+CONF_UPDATE_INTERVAL = "update_interval"
+CONF_LANGUAGE = "language"
+CONF_SENSORS = "sensors"
+S_LIST = "lists"
+
+# Sort options
+LIST_SORT_BY_DEFAULT = [
+    {"value": "rank", "label": "Rank"},
+    {"value": "added", "label": "Added"},
+    {"value": "title", "label": "Title"},
+    {"value": "released", "label": "Released"},
+    {"value": "runtime", "label": "Runtime"},
+    {"value": "popularity", "label": "Popularity"},
+    {"value": "random", "label": "Random"},
+    {"value": "percentage", "label": "Percentage"},
+    {"value": "my_rating", "label": "My Rating"},
+    {"value": "watched", "label": "Watched"},
+    {"value": "collected", "label": "Collected"},
+]
+LIST_SORT_BY_VIP = [
+    {"value": "imdb_rating", "label": "IMDB Rating"},
+    {"value": "tmdb_rating", "label": "TMDB Rating"},
+    {"value": "rt_tomatometer", "label": "Rotten Tomatoes Tomatometer"},
+    {"value": "rt_audience", "label": "Rotten Tomatoes Audience"},
+    {"value": "metascore", "label": "Metascore"},
+    {"value": "votes", "label": "Votes"},
+    {"value": "imdb_votes", "label": "IMDB Votes"},
+    {"value": "tmdb_votes", "label": "TMDB Votes"},
+]
+LIST_SORT_BY_CUSTOM = [
+    {"value": "rating", "label": "Rating"},
+]
+LIST_SORT_ORDER = [
+    {"value": "asc", "label": "Ascending"},
+    {"value": "desc", "label": "Descending"},
+]
+LIST_MEDIA_TYPES = [
+    {"value": "any", "label": "Any"},
+    {"value": "movie", "label": "Movie"},
+    {"value": "show", "label": "Show"},
+]

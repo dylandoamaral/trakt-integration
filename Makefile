@@ -12,3 +12,6 @@ test:
 homeassistant:
 	killall hass || true
 	hass -c /config
+
+translations:
+	python custom_components/trakt_tv/scripts/gen_translations.py

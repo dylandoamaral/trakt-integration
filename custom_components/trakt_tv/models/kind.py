@@ -20,14 +20,14 @@ class TraktKind(Enum):
     PREMIERE = CalendarInformation("premiere", "Premieres", "shows/premieres", Show)
     MOVIE = CalendarInformation("movie", "Movies", "movies", Movie)
     DVD = CalendarInformation("dvd", "DVD", "dvd", Movie)
-    NEXT_TO_WATCH_ALL = CalendarInformation("all", "All", "shows", Show)
-    NEXT_TO_WATCH_AIRED = CalendarInformation("only_aired", "Only Aired", "shows", Show)
+    NEXT_TO_WATCH_ALL = CalendarInformation("next_to_watch_all", "All", "shows", Show)
+    NEXT_TO_WATCH_AIRED = CalendarInformation(
+        "next_to_watch_aired", "Only Aired", "shows", Show
+    )
     NEXT_TO_WATCH_UPCOMING = CalendarInformation(
-        "only_upcoming", "Only Upcoming", "shows", Show
+        "next_to_watch_upcoming", "Only Upcoming", "shows", Show
     )
     LIST = CalendarInformation("lists", None, "lists/{list_id}/items", Media, "medias")
-    ANTICIPATED_MOVIE = CalendarInformation("movie", "Movies", "movies", Movie)
-    ANTICIPATED_SHOW = CalendarInformation("show", "Shows", "shows", Show)
 
     @classmethod
     def from_string(cls, string):
@@ -54,9 +54,4 @@ NEXT_TO_WATCH_KINDS = [
     TraktKind.NEXT_TO_WATCH_ALL,
     TraktKind.NEXT_TO_WATCH_AIRED,
     TraktKind.NEXT_TO_WATCH_UPCOMING,
-]
-
-ANTICIPATED_KINDS = [
-    TraktKind.ANTICIPATED_MOVIE,
-    TraktKind.ANTICIPATED_SHOW,
 ]

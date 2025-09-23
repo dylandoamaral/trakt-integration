@@ -4,8 +4,6 @@ from datetime import datetime, timedelta, timezone
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple
 
-from dateutil import parser
-
 from .const import DOMAIN
 from .exception import TraktException
 
@@ -118,3 +116,11 @@ def parse_utc_date(date_str: Optional[str]) -> Optional[datetime]:
     # Replace 'Z' (UTC designator) with '+00:00' for Python < 3.11 compatibility
     cleaned = date_str.replace("Z", "+00:00")
     return datetime.fromisoformat(cleaned).astimezone(timezone.utc)
+
+
+def is_int_like(val) -> bool:
+    try:
+        int(str(val).strip())
+        return True
+    except (TypeError, ValueError):
+        return False
