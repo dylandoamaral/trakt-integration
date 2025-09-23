@@ -12,25 +12,3 @@ lovelace:
   resources:
     - url: /local/custom-lovelace/upcoming-media-card/upcoming-media-card.js?v=0.1.1
       type: js
-
-trakt_tv:
-  language: fr
-  timezone: Europe/Paris
-  sensors:
-    upcoming:
-      show:
-        days_to_fetch: 90
-      movie:
-        days_to_fetch: 90
-        max_medias: 3
-    all_upcoming:
-      show:
-        max_medias: 5
-    recommendation:
-      movie:
-        max_medias: 10
-      show:
-        max_medias: 2
-    next_to_watch:
-      all:
-        max_medias: 10

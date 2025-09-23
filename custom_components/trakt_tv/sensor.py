@@ -5,9 +5,11 @@ from datetime import timedelta
 
 from homeassistant.helpers.entity import Entity
 
+from custom_components.trakt_tv.const import CONF_SENSORS
+
 from .configuration import Configuration
 from .const import DOMAIN
-from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.kind import BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 LOGGER = logging.getLogger(__name__)
 
@@ -15,123 +17,81 @@ SCAN_INTERVAL = timedelta(minutes=8)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up the sensor platform."""
-    coordinator = hass.data[DOMAIN]["instances"]["coordinator"]
-    configuration = Configuration(hass.data)
+    """Set up the sensor platform from a config entry."""
+    # fetch coordinator from the per-entry bucket
+    bucket = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = bucket["coordinator"]
+
+    # read options from OptionsFlow
+    sensors_opts = (config_entry.options or {}).get(CONF_SENSORS, {})
+
+    # Get name of the integration to use in prefix
+    integration_name = config_entry.title
+
+    def _is_enabled(group_opts: dict) -> bool:
+        return bool(group_opts.get("enabled", False))
+
+    # Configure data sources
+    data_sources = [
+        {"name": "upcoming", "prefix": "Upcoming", "icon": "mdi:calendar"},
+        {"name": "all_upcoming", "prefix": "All Upcoming", "icon": "mdi:calendar"},
+        {
+            "name": "next_to_watch",
+            "prefix": "Next to Watch",
+            "icon": "mdi:calendar",
+            "kinds": NEXT_TO_WATCH_KINDS,
+        },
+        {
+            "name": "anticipated",
+            "prefix": "Anticipated",
+            "icon": {TraktKind.MOVIE: "mdi:movie", TraktKind.SHOW: "mdi:television"},
+            "kinds": BASIC_KINDS,
+        },
+        {
+            "name": "recommendation",
+            "prefix": "Recommendation",
+            "icon": {TraktKind.MOVIE: "mdi:movie", TraktKind.SHOW: "mdi:television"},
+            "kinds": BASIC_KINDS,
+        },
+    ]
 
     sensors = []
+    # Add sensors for each data source and kind
+    for data_source in data_sources:
+        kinds = data_source.get("kinds", TraktKind)
+        opts = sensors_opts.get(data_source["name"], {})
 
-    for trakt_kind in TraktKind:
-        identifier = trakt_kind.value.identifier
-        for all_medias in [False, True]:
-            if configuration.upcoming_identifier_exists(identifier, all_medias):
-                sensor = TraktSensor(
-                    hass=hass,
-                    config_entry=config_entry,
-                    coordinator=coordinator,
-                    trakt_kind=trakt_kind,
-                    source="all_upcoming" if all_medias else "upcoming",
-                    prefix="Trakt All Upcoming" if all_medias else "Trakt Upcoming",
-                    mdi_icon="mdi:calendar",
-                )
-                sensors.append(sensor)
-
-        if trakt_kind not in BASIC_KINDS:
-            continue
-
-        if configuration.recommendation_identifier_exists(identifier):
-            sensor = TraktSensor(
-                hass=hass,
-                config_entry=config_entry,
-                coordinator=coordinator,
-                trakt_kind=trakt_kind,
-                source="recommendation",
-                prefix="Trakt Recommendation",
-                mdi_icon="mdi:movie",
-            )
-            sensors.append(sensor)
-
-    for trakt_kind in TraktKind:
-        if trakt_kind in ANTICIPATED_KINDS:
+        for trakt_kind in kinds:
             identifier = trakt_kind.value.identifier
-            if configuration.anticipated_identifier_exists(identifier):
+
+            g = opts.get(identifier, {})
+
+            if _is_enabled(g):
+                prefix = f"{integration_name} {data_source['prefix']}"
+
+                # Icon can be a dict (for anticipated) or a string
+                mdi_icon = data_source["icon"]
+                if isinstance(mdi_icon, dict):
+                    mdi_icon = mdi_icon.get(trakt_kind, "mdi:movie")
+
                 sensor = TraktSensor(
                     hass=hass,
                     config_entry=config_entry,
                     coordinator=coordinator,
                     trakt_kind=trakt_kind,
-                    source="anticipated",
-                    prefix="Trakt Anticipated",
-                    mdi_icon=(
-                        "mdi:movie"
-                        if trakt_kind == TraktKind.ANTICIPATED_MOVIE
-                        else "mdi:television"
-                    ),
-                )
-                sensors.append(sensor)
-
-    for trakt_kind in TraktKind:
-        if trakt_kind not in NEXT_TO_WATCH_KINDS:
-            continue
-
-        identifier = trakt_kind.value.identifier
-
-        if configuration.next_to_watch_identifier_exists(identifier):
-            sensor = TraktSensor(
-                hass=hass,
-                config_entry=config_entry,
-                coordinator=coordinator,
-                trakt_kind=trakt_kind,
-                source=identifier,
-                prefix="Trakt Next To Watch",
-                mdi_icon="mdi:calendar",
-            )
-            sensors.append(sensor)
-
-    if configuration.watchlist_identifier_exists("movie"):
-        sensor = TraktSensor(
-            hass=hass,
-            config_entry=config_entry,
-            coordinator=coordinator,
-            trakt_kind=TraktKind.MOVIE,
-            source="watchlist",
-            prefix="Trakt Watchlist",
-            mdi_icon="mdi:movie",
-        )
-        sensors.append(sensor)
-
-    for trakt_kind in TraktKind:
-        if trakt_kind != TraktKind.LIST:
-            continue
-
-        identifier = trakt_kind.value.identifier
-
-        if configuration.source_exists(identifier):
-            for list_entry in configuration.get_sensor_config(identifier):
-                sensor = TraktSensor(
-                    hass=hass,
-                    config_entry=config_entry,
-                    coordinator=coordinator,
-                    trakt_kind=trakt_kind,
-                    source=identifier,
-                    prefix=f"Trakt List {list_entry['friendly_name']}",
-                    mdi_icon="mdi:view-list",
-                    sensor_data=list_entry,
-                    sensor_identifier=list_entry["friendly_name"]
-                    .replace(" ", "_")
-                    .lower(),
+                    source=data_source["name"],
+                    prefix=prefix,
+                    mdi_icon=mdi_icon,
                 )
                 sensors.append(sensor)
 
     # Add sensors for stats
-    if configuration.source_exists("stats"):
+    g = sensors_opts.get("stats", {}).get("all", {})
+    if _is_enabled(g):
         stats = {}
         # Check if the coordinator has data
         if coordinator.data:
             stats = coordinator.data.get("stats", {})
-
-        # Check if all stats are allowed
-        allow_all = configuration.stats_key_exists("all")
 
         # Create a sensor for each key in the stats
         for key, value in stats.items():
@@ -139,23 +99,32 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             if isinstance(value, dict):
                 continue
 
-            # Skip if not allowed in config
-            if not allow_all and not configuration.stats_key_exists(key):
-                continue
-
-            # Transform the key to a more readable format
-            title = key.replace("_", " ").title()
-
             # Create the sensor
             sensor = TraktStateSensor(
                 hass=hass,
+                config_entry=config_entry,
                 coordinator=coordinator,
-                prefix="Trakt Stats",
+                prefix=f"{integration_name} Stats",
                 mdi_icon="mdi:chart-line",
-                title=title,
+                data_key=key,
                 state=value,
             )
             sensors.append(sensor)
+
+    # Add lists
+    for list_entry in sensors_opts.get("lists", []):
+        sensor = TraktSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.LIST,
+            source="lists",
+            prefix=f"{integration_name} {list_entry['friendly_name']}",
+            mdi_icon="mdi:view-list",
+            sensor_data=list_entry,
+            sensor_identifier=list_entry["friendly_name"].replace(" ", "_").lower(),
+        )
+        sensors.append(sensor)
 
     async_add_entities(sensors)
 
@@ -197,6 +166,7 @@ class TraktSensor(Entity):
 
     @property
     def medias(self):
+        """Return the media list of the sensor."""
         if not self.coordinator.data:
             return None
 
@@ -206,6 +176,8 @@ class TraktSensor(Entity):
                 return self.coordinator.data[self.source][self.trakt_kind][name]
             except KeyError:
                 return None
+            except TypeError:
+                return None
 
         try:
             return self.coordinator.data[self.source][self.trakt_kind]
@@ -214,12 +186,13 @@ class TraktSensor(Entity):
 
     @property
     def configuration(self):
+        cfg = Configuration(self.hass, self.config_entry)
+        sensors = cfg.get_sensors()
         identifier = self.trakt_kind.value.identifier
-        data = self.hass.data[DOMAIN]
         source = (
             "next_to_watch" if self.trakt_kind in NEXT_TO_WATCH_KINDS else self.source
         )
-        return data["configuration"]["sensors"][source][identifier]
+        return (sensors.get(source, {}) or {}).get(identifier, {}) or {}
 
     @property
     def data(self):
@@ -229,10 +202,10 @@ class TraktSensor(Entity):
         if self.trakt_kind == TraktKind.LIST:
             sort_by = self.sensor_data["sort_by"]
             sort_order = self.sensor_data["sort_order"]
-            max_medias = self.sensor_data["max_medias"]
+            max_medias = int(self.sensor_data["max_medias"])
             return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
 
-        max_medias = self.configuration["max_medias"]
+        max_medias = int(self.configuration["max_medias"])
         return self.medias.to_homeassistant()[0 : max_medias + 1]
 
     @property
@@ -275,19 +248,23 @@ class TraktStateSensor(Entity):
     def __init__(
         self,
         hass,
+        config_entry,
         coordinator,
         prefix: str,
         mdi_icon: str,
-        title: str,
+        data_key: str,
         state: str,
     ):
         """Initialize the sensor."""
         self.hass = hass
+        self.config_entry = config_entry
         self.coordinator = coordinator
         self.prefix = prefix
         self.icon = mdi_icon
-        self.title = title
+        self.data_key = data_key
         self.state = state
+        self.title = data_key.replace("_", " ").title()
+        self._attr_unique_id = f"{self.config_entry.entry_id}_stats_{self.data_key}"
 
     @property
     def name(self):
