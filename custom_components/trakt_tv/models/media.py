@@ -331,11 +331,17 @@ class Medias:
         :return: The dictionary containing all necessary information for upcoming media
                  card
         """
-        medias = sorted(
-            self.items,
-            key=lambda media: getattr(media, sort_by),
-            reverse=sort_order == "desc",
-        )
+        if sort_by == "trakt":
+            if sort_order == "desc":
+                medias = reversed(self.items)
+            else:
+                medias = self.items
+        else:
+            medias = sorted(
+                self.items,
+                key=lambda media: getattr(media, sort_by),
+                reverse=sort_order == "desc",
+            )
         medias = [media.to_homeassistant() for media in medias]
         return [first_item] + medias
 

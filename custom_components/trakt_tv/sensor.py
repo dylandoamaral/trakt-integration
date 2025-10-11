@@ -233,6 +233,12 @@ class TraktSensor(Entity):
             return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
 
         max_medias = self.configuration["max_medias"]
+
+        if "sort_by" in self.configuration:
+            sort_by = self.configuration["sort_by"]
+            sort_order = self.configuration["sort_order"]
+            return self.medias.to_homeassistant(sort_by, sort_order)[0 : max_medias + 1]
+
         return self.medias.to_homeassistant()[0 : max_medias + 1]
 
     @property

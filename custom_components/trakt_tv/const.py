@@ -172,6 +172,14 @@ LANGUAGE_CODES = [
     "zu",
 ]
 
-SORT_BY_OPTIONS = ["rating", "rating_trakt", "rank", "runtime", "released", "listed_at"]
+SORT_BY_OPTIONS = [
+    "rating",
+    "rating_trakt",
+    "rank",
+    "runtime",
+    "released",
+    "listed_at",
+    "trakt",
+]
 
 SORT_HOW_OPTIONS = ["asc", "desc"]
