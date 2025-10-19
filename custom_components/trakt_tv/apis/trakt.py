@@ -143,8 +143,9 @@ class TraktApi:
             for section in [
                 "calendar",
                 "progress_watched",
-                "progress_watched_reset",
                 "progress_collected",
+                "recommendations",
+                "dropped",
             ]:
                 hidden_items = await self.request(
                     "get", f"users/hidden/{section}?type=show"
