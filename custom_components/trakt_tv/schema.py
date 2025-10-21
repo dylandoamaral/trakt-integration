@@ -65,7 +65,7 @@ def next_to_watch_schema() -> Dict[str, Any]:
         subschemas[trakt_kind.value.identifier] = {
             Required("max_medias", default=3): cv.positive_int,
             Required("exclude", default=[]): list,
-            Required("sort_by", default="released"): In(["released", "title", "last_activity_date"]),
+            Required("sort_by", default="released"): In(["released", "title", "last_activity_date", "trakt"]),
             Required("sort_order", default="asc"): In(SORT_HOW_OPTIONS),
         }
 
