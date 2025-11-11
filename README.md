@@ -257,8 +257,7 @@ There are four parameters for each sensor:
 - `media_type` _OPTIONAL_ can be used to filter the media type within the list, possible values are `show`, `movie`, `episode`. Default is blank, which will show all media types
 - `max_medias` _OPTIONAL_ should be a positive number for how many items to grab. Default is `3`
 - `sort_by` _OPTIONAL_ should be a string for how to sort the list. Default is `rank`. Possible values are:
-  - `rank`, `added`, `title`, `released`, `runtime`, `popularity`, `random`, `percentage`, `my_rating`, `watched`, `collected`
-  - Some options are VIP only: `imdb_rating`, `tmdb_rating`, `rt_tomatometer`, `rt_audience`, `metascore`, `votes`, `imdb_votes`, and `tmdb_votes`. The results will default to `rank` if not a VIP user
+  - `rating`, `rating_trakt`, `rank`, `runtime`, `released`, `listed_at`
 - `sort_order` _OPTIONAL_ should be a string for the sort order. Possible values are `asc`, `desc`. Default is `asc`
 
 ###### Lists Example
