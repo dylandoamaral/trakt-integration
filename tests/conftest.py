@@ -18,6 +18,11 @@ def yaml():
                             "sort_order": "desc",
                         }
                     },
+                    "next_to_watch": {
+                        "only_aired": {
+                            "sort_by": "released",
+                        }
+                    },
                 },
             }
         }
