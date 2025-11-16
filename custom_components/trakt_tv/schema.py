@@ -6,7 +6,13 @@ from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
 
-from .const import DOMAIN, LANGUAGE_CODES, SORT_BY_OPTIONS, SHOW_SORT_BY_OPTIONS, SORT_HOW_OPTIONS
+from .const import (
+    DOMAIN,
+    LANGUAGE_CODES,
+    SHOW_SORT_BY_OPTIONS,
+    SORT_BY_OPTIONS,
+    SORT_HOW_OPTIONS,
+)
 from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
 
 
