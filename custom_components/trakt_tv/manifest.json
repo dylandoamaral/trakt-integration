@@ -7,5 +7,6 @@
   "codeowners": ["@dylandoamaral"],
   "version": "0.13.0",
   "iot_class": "cloud_polling",
-  "integration_type": "hub"
+  "integration_type": "hub",
+  "dependencies": ["application_credentials"]
 }

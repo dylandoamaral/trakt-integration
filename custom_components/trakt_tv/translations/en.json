@@ -1,33 +1,297 @@
 {
-    "title": "Trakt",
-    "config": {
-        "abort": {
-            "authorize_url_timeout": "Timeout generating authorize URL.",
-            "missing_configuration": "The component is not configured. Please follow the documentation.",
-            "no_url_available": "No URL available. For information about this error, [check the help section]({docs_url})"
-        },
-        "create_entry": {
-            "default": "Successfully authenticated"
-        },
-        "step": {
-            "pick_implementation": {
-                "title": "Pick Authentication Method"
-            },
-            "user": {
-                "data": {
-                    "client_id": "Client ID",
-                    "client_secret": "Client secret"
-                }
-            }
+  "title": "Trakt TV",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Trakt",
+        "description": "You will be redirected to Trakt to sign in."
+      },
+      "profile": {
+        "title": "Profile settings",
+        "data": {
+          "language": "Language",
+          "update_interval": "API Update interval, minutes"
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "fetch_intervals": "Update frequency (seconds)"
-                }
-            }
-        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Trakt",
+        "description": "Your Trakt account needs to be re-authenticated. Continue to sign in."
+      }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "sensors": "Configure sensors",
+          "lists_menu": "Manage lists",
+          "finish": "Save & exit"
+        }
+      },
+      "sensors": {
+        "title": "Trakt sensors",
+        "description": "Configure which Trakt sensors to enable and their settings.",
+        "sections": {
+          "stats": {
+            "name": "Statistics",
+            "description": "Your Trakt statistics, e.g. movies watched, shows collected.",
+            "data": {
+              "enabled": "Enabled"
+            }
+          },
+          "upcoming_show": {
+            "name": "Upcoming — Show",
+            "description": "Upcoming shows from your watchlist. See: https://trakt.tv/calendars/my/shows/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "upcoming_new_show": {
+            "name": "Upcoming — New show",
+            "description": "Upcoming new shows from your watchlist. See: https://trakt.tv/calendars/my/new-shows/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "upcoming_premiere": {
+            "name": "Upcoming — Premiere",
+            "description": "Upcoming premieres from your watchlist. See: https://trakt.tv/calendars/my/premieres/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "upcoming_movie": {
+            "name": "Upcoming — Movie",
+            "description": "Upcoming movies from your watchlist. See: https://trakt.tv/calendars/my/movies/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "upcoming_dvd": {
+            "name": "Upcoming — DVD",
+            "description": "Upcoming dvds from your watchlist. See: https://trakt.tv/calendars/my/dvd/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "all_upcoming_show": {
+            "name": "All upcoming — Show",
+            "description": "All upcoming shows. See: https://trakt.tv/calendars/shows/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "all_upcoming_new_show": {
+            "name": "All upcoming — New show",
+            "description": "All upcoming new shows. See: https://trakt.tv/calendars/new-shows/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "all_upcoming_premiere": {
+            "name": "All upcoming — Premiere",
+            "description": "All upcoming premieres. See: https://trakt.tv/calendars/premieres/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "all_upcoming_movie": {
+            "name": "All upcoming — Movie",
+            "description": "All upcoming movies. See: https://trakt.tv/calendars/movies/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "all_upcoming_dvd": {
+            "name": "All upcoming — DVD",
+            "description": "All upcoming dvds. See: https://trakt.tv/calendars/dvd/",
+            "data": {
+              "enabled": "Enabled",
+              "days_to_fetch": "Days to fetch",
+              "max_medias": "Maximum items to display"
+            },
+            "data_description": {
+              "days_to_fetch": "How far ahead to look (days)."
+            }
+          },
+          "next_to_watch_next_to_watch_all": {
+            "name": "Next to watch — All",
+            "description": "",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display",
+              "exclude_text": "Exclude (comma separated)"
+            },
+            "data_description": {
+              "exclude_text": "Slugs to hide, separated by commas. See documentation for more details."
+            }
+          },
+          "next_to_watch_next_to_watch_only_aired": {
+            "name": "Next to watch — Only aired",
+            "description": "",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display",
+              "exclude_text": "Exclude (comma separated)"
+            },
+            "data_description": {
+              "exclude_text": "Slugs to hide, separated by commas. See documentation for more details."
+            }
+          },
+          "next_to_watch_next_to_watch_only_upcoming": {
+            "name": "Next to watch — Only upcoming",
+            "description": "",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display",
+              "exclude_text": "Exclude (comma separated)"
+            },
+            "data_description": {
+              "exclude_text": "Slugs to hide, separated by commas. See documentation for more details."
+            }
+          },
+          "recommendation_show": {
+            "name": "Recommendations — Show",
+            "description": "Recommended shows based on what you might like. See: https://trakt.tv/shows/recommendations",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display"
+            }
+          },
+          "recommendation_movie": {
+            "name": "Recommendations — Movie",
+            "description": "Recommended movies based on what you might like. See: https://trakt.tv/movies/recommendations",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display"
+            }
+          },
+          "anticipated_show": {
+            "name": "Anticipated — Show",
+            "description": "Most anticipated shows. See: https://trakt.tv/shows/anticipated",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display",
+              "exclude_collected": "Exclude collected items"
+            }
+          },
+          "anticipated_movie": {
+            "name": "Anticipated — Movie",
+            "description": "Most anticipated movies. See: https://trakt.tv/movies/anticipated",
+            "data": {
+              "enabled": "Enabled",
+              "max_medias": "Maximum items to display",
+              "exclude_collected": "Exclude collected items"
+            }
+          }
+        }
+      },
+      "lists_menu": {
+        "title": "Manage lists",
+        "menu_options": {
+          "lists_add": "Add list",
+          "lists_edit_pick": "Edit list",
+          "lists_delete": "Delete list(s)",
+          "init": "Back"
+        }
+      },
+      "lists_add": {
+        "title": "Add list",
+        "data": {
+          "friendly_name": "Friendly name",
+          "private_list": "Private list (authorized user only)",
+          "list_id": "List ID or slug",
+          "max_medias": "Maximum items to display",
+          "media_type": "Filter media type",
+          "sort_by": "Sort by",
+          "sort_order": "Sort order",
+          "exclude_collected": "Exclude collected and watched items",
+          "only_released": "Only released items"
+        },
+        "data_description": {
+          "friendly_name": "A name to identify this list in Home Assistant. Must be unique.",
+          "list_id": "Public lists require a numeric ID (e.g. 26885014). Private lists can use the slug from the URL (e.g. favorites, watchlist). See documentation for details."
+        }
+      },
+      "lists_edit_pick": {
+        "title": "Edit list",
+        "data": {
+          "pick": "Select a list"
+        }
+      },
+      "lists_edit": {
+        "title": "Edit list",
+        "data": {
+          "friendly_name": "Friendly name",
+          "private_list": "Private list (authorized user only)",
+          "list_id": "List ID or slug",
+          "max_medias": "Maximum items to display",
+          "media_type": "Filter media type",
+          "sort_by": "Sort by",
+          "sort_order": "Sort order",
+          "exclude_collected": "Exclude collected and watched items",
+          "only_released": "Only released items"
+        },
+        "data_description": {
+          "friendly_name": "A name to identify this list in Home Assistant. Must be unique.",
+          "list_id": "Public lists require a numeric ID (e.g. 26885014). Private lists can use the slug from the URL (e.g. favorites, watchlist). See documentation for details."
+        }
+      },
+      "lists_delete": {
+        "title": "Delete list(s)",
+        "data": {
+          "names": "Choose list(s) to remove"
+        }
+      }
+    },
+    "error": {
+      "name_exists": "A list with this name already exists.",
+      "numeric_required_for_public": "For public lists, the List ID must be a numeric ID (not a slug)."
+    }
+  }
 }
