@@ -173,5 +173,6 @@ LANGUAGE_CODES = [
 ]
 
 SORT_BY_OPTIONS = ["rating", "rating_trakt", "rank", "runtime", "released", "listed_at"]
+NEXT_TO_WATCH_SORT_BY_OPTIONS = ["released", "last_activity_date"]
 
 SORT_HOW_OPTIONS = ["asc", "desc"]

@@ -225,6 +225,7 @@ class Show(Media):
     rank: Optional[int] = None
     listed_at: Optional[datetime] = None
     rating_trakt: Optional[int] = None
+    last_activity_date: Optional[datetime] = None
 
     @staticmethod
     def from_trakt(data) -> "Show":
@@ -244,6 +245,7 @@ class Show(Media):
             listed_at=parse_utc_date(data.get("listed_at")),
             runtime=show.get("runtime"),
             rating_trakt=show.get("rating"),
+            last_activity_date=parse_utc_date(data.get("last_watched_at")),
         )
 
     async def get_more_information(self, language: str):
