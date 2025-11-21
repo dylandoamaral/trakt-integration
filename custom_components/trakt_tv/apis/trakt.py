@@ -4,8 +4,8 @@ import logging
 from asyncio import gather, sleep
 from datetime import datetime
 from typing import Any, Dict
+from zoneinfo import ZoneInfo
 
-import pytz
 from aiohttp import ClientResponse, ClientSession
 from async_timeout import timeout
 from homeassistant.core import HomeAssistant
@@ -294,26 +294,18 @@ class TraktApi:
 
         medias = [trakt_kind.value.model.from_trakt(media) for media in raw_medias]
 
+        timezone = ZoneInfo(configuration.get_timezone())
+        now = datetime.now(timezone)
+
         if next_to_watch:
             if only_aired:
-                timezoned_now = datetime.now(
-                    pytz.timezone(configuration.get_timezone())
-                )
-                new_medias = [
-                    media for media in medias if media.released <= timezoned_now
-                ]
+                new_medias = [media for media in medias if media.released <= now]
             elif only_upcoming:
-                timezoned_now = datetime.now(
-                    pytz.timezone(configuration.get_timezone())
-                )
-                new_medias = [
-                    media for media in medias if media.released > timezoned_now
-                ]
+                new_medias = [media for media in medias if media.released > now]
             else:
                 new_medias = medias
         else:
-            timezoned_now = datetime.now(pytz.timezone(configuration.get_timezone()))
-            new_medias = [media for media in medias if media.released >= timezoned_now]
+            new_medias = [media for media in medias if media.released >= now]
 
         await gather(*[media.get_more_information(language) for media in new_medias])
 
@@ -611,11 +603,10 @@ class TraktApi:
         # Filtering for "only_released"
         only_released = configuration.is_watchlist_only_released(identifier)
         if only_released:
-            timezoned_now = datetime.now(pytz.timezone(configuration.get_timezone()))
+            timezone = ZoneInfo(configuration.get_timezone())
+            now = datetime.now(timezone)
             medias = [
-                media
-                for media in medias
-                if media.released and media.released <= timezoned_now
+                media for media in medias if media.released and media.released <= now
             ]
 
         # Manual sorting for "rating" or applying sort_order for API-sorted results

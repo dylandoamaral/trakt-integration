@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List
+from zoneinfo import ZoneInfo, available_timezones
 
-import pytz
 from dateutil.tz import tzlocal
 from homeassistant.helpers import config_validation as cv
 from voluptuous import ALLOW_EXTRA, PREVENT_EXTRA, In, Required, Schema
@@ -24,13 +24,13 @@ def dictionary_to_schema(
 
 
 def domain_schema() -> Schema:
+    timezone_default = datetime.now(ZoneInfo("UTC")).astimezone().tzname()
+
     return {
         DOMAIN: {
             "sensors": sensors_schema(),
             Required("language", default="en"): In(LANGUAGE_CODES),
-            Required("timezone", default=datetime.now(tzlocal()).tzname()): In(
-                pytz.all_timezones_set
-            ),
+            Required("timezone", default=timezone_default): In(available_timezones()),
         }
     }
 
