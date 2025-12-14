@@ -299,13 +299,13 @@ class TraktApi:
 
         if next_to_watch:
             if only_aired:
-                new_medias = [media for media in medias if media.released <= now]
+                new_medias = [media for media in medias if media.released and media.released <= now]
             elif only_upcoming:
-                new_medias = [media for media in medias if media.released > now]
+                new_medias = [media for media in medias if media.released and media.released > now]
             else:
                 new_medias = medias
         else:
-            new_medias = [media for media in medias if media.released >= now]
+            new_medias = [media for media in medias if media.released and media.released >= now]
 
         await gather(*[media.get_more_information(language) for media in new_medias])
 
