@@ -145,6 +145,7 @@ class TraktApi:
                 "progress_watched",
                 "progress_watched_reset",
                 "progress_collected",
+                "dropped",
             ]:
                 hidden_items = await self.request(
                     "get", f"users/hidden/{section}?type=show"
@@ -299,13 +300,21 @@ class TraktApi:
 
         if next_to_watch:
             if only_aired:
-                new_medias = [media for media in medias if media.released and media.released <= now]
+                new_medias = [
+                    media
+                    for media in medias
+                    if media.released and media.released <= now
+                ]
             elif only_upcoming:
-                new_medias = [media for media in medias if media.released and media.released > now]
+                new_medias = [
+                    media for media in medias if media.released and media.released > now
+                ]
             else:
                 new_medias = medias
         else:
-            new_medias = [media for media in medias if media.released and media.released >= now]
+            new_medias = [
+                media for media in medias if media.released and media.released >= now
+            ]
 
         await gather(*[media.get_more_information(language) for media in new_medias])
 
