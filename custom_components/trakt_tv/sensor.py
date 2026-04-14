@@ -100,6 +100,18 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         )
         sensors.append(sensor)
 
+    if configuration.watchlist_identifier_exists("show"):
+        sensor = TraktSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.SHOW,
+            source="watchlist",
+            prefix="Trakt Watchlist",
+            mdi_icon="mdi:television",
+        )
+        sensors.append(sensor)
+
     for trakt_kind in TraktKind:
         if trakt_kind != TraktKind.LIST:
             continue

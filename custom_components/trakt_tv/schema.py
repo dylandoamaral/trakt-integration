@@ -101,16 +101,19 @@ def anticipated_schema() -> Dict[str, Any]:
 
 def watchlist_schema() -> Dict[str, Any]:
     """Schema for the watchlist sensor."""
+    subschema = {
+        Required("only_released", default=True): cv.boolean,
+        Required("only_unwatched", default=True): cv.boolean,
+        Required("max_medias", default=20): cv.positive_int,
+        Required("sort_by", default="released"): In(
+            ["released", "title", "added", "rating"]
+        ),
+        Required("sort_order", default="asc"): In(["asc", "desc"]),
+    }
+
     return {
-        "movie": {
-            Required("only_released", default=True): cv.boolean,
-            Required("only_unwatched", default=True): cv.boolean,
-            Required("max_medias", default=20): cv.positive_int,
-            Required("sort_by", default="released"): In(
-                ["released", "title", "added", "rating"]
-            ),
-            Required("sort_order", default="asc"): In(["asc", "desc"]),
-        }
+        "movie": subschema,
+        "show": subschema,
     }
 
 

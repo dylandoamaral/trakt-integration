@@ -632,6 +632,92 @@ class TraktApi:
 
         return {TraktKind.MOVIE: Medias(medias)}
 
+    async def fetch_watchlist_shows(self):
+        configuration = Configuration(data=self.hass.data)
+        language = configuration.get_language()
+
+        identifier = "show"
+        sort_by = configuration.get_watchlist_sort_by(identifier)
+        sort_order = configuration.get_watchlist_sort_order(identifier)
+
+        # The API does not support sorting by rating, so we handle it manually later
+        api_sort_by = sort_by if sort_by != "rating" else "released"
+
+        raw_medias = await self.request(
+            "get", f"users/me/watchlist/shows/{api_sort_by}?extended=full"
+        )
+
+        if raw_medias is None:
+            return {}
+
+        medias = [
+            TraktKind.SHOW.value.model.from_trakt(media["show"]) for media in raw_medias
+        ]
+
+        # Filtering for "only_unwatched"
+        only_unwatched = configuration.is_watchlist_only_unwatched(identifier)
+        if only_unwatched:
+            watched_shows = await self.request(
+                "get", "sync/watched/shows?extended=noseasons"
+            )
+            collected_shows = await self.request("get", "sync/collection/shows")
+
+            watched_ids = (
+                {show["show"]["ids"]["trakt"] for show in watched_shows}
+                if watched_shows
+                else set()
+            )
+            collected_ids = (
+                {show["show"]["ids"]["trakt"] for show in collected_shows}
+                if collected_shows
+                else set()
+            )
+
+            if watched_ids or collected_ids:
+                unwatched_medias = []
+                for media in medias:
+                    if (
+                        media.ids.trakt not in watched_ids
+                        and media.ids.trakt not in collected_ids
+                    ):
+                        unwatched_medias.append(media)
+                medias = unwatched_medias
+
+        # Filtering for "only_released"
+        only_released = configuration.is_watchlist_only_released(identifier)
+        if only_released:
+            timezone = ZoneInfo(configuration.get_timezone())
+            now = datetime.now(timezone)
+            medias = [
+                media for media in medias if media.released and media.released <= now
+            ]
+
+        # Manual sorting for "rating" or applying sort_order for API-sorted results
+        if sort_by == "rating":
+            medias.sort(key=lambda m: m.rating or 0, reverse=(sort_order == "desc"))
+        elif sort_order == "desc":
+            medias.reverse()
+
+        # Slicing to max_medias
+        max_medias = configuration.get_watchlist_max_medias(identifier)
+        medias = medias[:max_medias]
+
+        await gather(*[media.get_more_information(language) for media in medias])
+
+        return {TraktKind.SHOW: Medias(medias)}
+
+    async def fetch_watchlist(self):
+        configuration = Configuration(data=self.hass.data)
+        res = {}
+
+        if configuration.watchlist_identifier_exists("movie"):
+            res.update(await self.fetch_watchlist_movies())
+
+        if configuration.watchlist_identifier_exists("show"):
+            res.update(await self.fetch_watchlist_shows())
+
+        return res
+
     async def retrieve_data(self):
         async with timeout(1800):
             configuration = Configuration(data=self.hass.data)
@@ -685,7 +771,7 @@ class TraktApi:
 
             if configuration.source_exists("watchlist"):
                 sources.append("watchlist")
-                coroutine_sources_data.append(self.fetch_watchlist_movies())
+                coroutine_sources_data.append(self.fetch_watchlist())
 
             """Then, let's add the next to watch sensors if needed"""
             for sub_source in [
