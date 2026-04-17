@@ -1,5 +1,6 @@
 """API for TraktTV bound to Home Assistant OAuth."""
 
+import asyncio
 import logging
 from asyncio import gather, sleep
 from datetime import datetime
@@ -88,13 +89,15 @@ class TraktApi:
                 return deserialize_json(text)
             elif response.status == 429:
                 wait_time = (
-                    int(response.headers["Retry-After"]) + 20
+                    int(response.headers.get("Retry-After", 60)) + 20
                 )  # Arbitrary value to have a security
-                await self.retry_request(
+                return await self.retry_request(
                     wait_time, response, method, url, retry, **kwargs
                 )
             else:
-                await self.retry_request(300, response, method, url, retry, **kwargs)
+                return await self.retry_request(
+                    300, response, method, url, retry, **kwargs
+                )
 
     async def fetch_calendar(
         self, path: str, from_date: str, nb_days: int, all_medias: bool
@@ -166,53 +169,67 @@ class TraktApi:
         raw_shows = await self.request("get", f"sync/watched/shows?extended=noseasons")
         raw_medias = []
 
-        for show in raw_shows or []:
-            try:
-                ids = extract_value_from(show, ["show", "ids"])
-                identifier = extract_value_from(ids, ["slug"])
-            except Exception as e:
-                LOGGER.warning(f"Raw show {show} can't be extracted because: {e}")
-                continue
+        # Semaphore to avoid hammering Trakt API and triggering 429s.
+        # 5 concurrent requests is a safe ceiling given Trakt's rate limits.
+        semaphore = asyncio.Semaphore(5)
 
-            try:
-                is_excluded = self.is_show_excluded(show, excluded_shows, hidden_shows)
+        async def process_show(show):
+            async with semaphore:
+                try:
+                    ids = extract_value_from(show, ["show", "ids"])
+                    identifier = extract_value_from(ids, ["slug"])
+                except Exception as e:
+                    LOGGER.warning(f"Raw show {show} can't be extracted because: {e}")
+                    return None
 
-                if is_excluded:
-                    continue
+                try:
+                    is_excluded = self.is_show_excluded(
+                        show, excluded_shows, hidden_shows
+                    )
 
-                trakt_identifier = extract_value_from(ids, ["trakt"])
+                    if is_excluded:
+                        return None
 
-                raw_show_progress = await self.fetch_show_progress(trakt_identifier)
-                is_finished = self.is_show_finished(raw_show_progress)
+                    trakt_identifier = extract_value_from(ids, ["trakt"])
 
-                """aired date and completed date will always be the same for next to watch tvshows if you're up-to-date"""
-                if excluded_finished and is_finished:
-                    continue
+                    raw_show_progress = await self.fetch_show_progress(trakt_identifier)
+                    is_finished = self.is_show_finished(raw_show_progress)
 
-                raw_next_episode = await self.fetch_show_informations(
-                    trakt_identifier,
-                    extract_value_from(raw_show_progress, ["next_episode", "season"]),
-                    extract_value_from(raw_show_progress, ["next_episode", "number"]),
-                )
+                    """aired date and completed date will always be the same for next to watch tvshows if you're up-to-date"""
+                    if excluded_finished and is_finished:
+                        return None
 
-                show["episode"] = raw_next_episode
+                    raw_next_episode = await self.fetch_show_informations(
+                        trakt_identifier,
+                        extract_value_from(
+                            raw_show_progress, ["next_episode", "season"]
+                        ),
+                        extract_value_from(
+                            raw_show_progress, ["next_episode", "number"]
+                        ),
+                    )
 
-                if raw_next_episode.get("first_aired") is not None:
-                    show["first_aired"] = raw_next_episode["first_aired"]
+                    show["episode"] = raw_next_episode
 
-                raw_medias.append(show)
-            except IndexError:
-                LOGGER.warning(f"Show {identifier} doesn't contain any trakt ID")
-                continue
-            except TraktException as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
-                continue
-            except TypeError as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
-                continue
-            except KeyError as e:
-                LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
-                continue
+                    if raw_next_episode.get("first_aired") is not None:
+                        show["first_aired"] = raw_next_episode["first_aired"]
+
+                    return show
+                except IndexError:
+                    LOGGER.warning(f"Show {identifier} doesn't contain any trakt ID")
+                    return None
+                except TraktException as e:
+                    LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
+                    return None
+                except TypeError as e:
+                    LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
+                    return None
+                except KeyError as e:
+                    LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
+                    return None
+
+        results = await gather(*[process_show(show) for show in raw_shows or []])
+        raw_medias = [r for r in results if r is not None]
 
         return raw_medias
 
@@ -233,10 +250,20 @@ class TraktApi:
     async def fetch_show_informations(
         self, show_id: str, season_nbr: str, episode_nbr: str
     ):
-        return await self.request(
+        cache_key = f"show_info_{show_id}_{season_nbr}_{episode_nbr}"
+
+        maybe_answer = cache_retrieve(self.cache(), cache_key)
+        if maybe_answer is not None:
+            return maybe_answer
+
+        response = await self.request(
             "get",
             f"shows/{show_id}/seasons/{season_nbr}/episodes/{episode_nbr}?extended=full",
         )
+
+        cache_insert(self.cache(), cache_key, response)
+
+        return response
 
     async def fetch_upcoming(
         self,
