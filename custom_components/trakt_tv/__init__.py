@@ -12,11 +12,12 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
     OAuth2Session,
     async_get_config_entry_implementation,
 )
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .apis.trakt import TraktApi
 from .config_flow import OAuth2FlowHandler
 from .const import DOMAIN, OAUTH2_AUTHORIZE, OAUTH2_TOKEN
+from .exception import TraktException
 from .schema import configuration_schema
 from .utils import update_domain_data
 
@@ -54,11 +55,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     api = TraktApi(async_get_clientsession(hass), session, hass)
 
+    # Implementing Fail Fast for the Coordinator
+    async def async_update_data():
+        try:
+            return await api.retrieve_data()
+        except TraktException as err:
+            raise UpdateFailed(f"Communication error with Trakt API: {err}")
+
     coordinator = DataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
         name="trakt",
-        update_method=api.retrieve_data,
+        update_method=async_update_data,
     )
 
     await coordinator.async_config_entry_first_refresh()
@@ -81,8 +89,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
             ]
         )
     )
-
     if unload_ok:
-        hass.data.pop(DOMAIN)
+        hass.data[DOMAIN].pop(entry.entry_id, None)
 
     return unload_ok
