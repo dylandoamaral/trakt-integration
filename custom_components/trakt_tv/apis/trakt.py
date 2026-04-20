@@ -38,6 +38,7 @@ class TraktApi:
         self.host = API_HOST
         self.oauth_session = oauth_session
         self.hass = hass
+        self._semaphore = asyncio.Semaphore(4)
 
     def cache(self) -> Dict[str, Any]:
         return self.hass.data[DOMAIN].get("cache", {})
@@ -87,16 +88,24 @@ class TraktApi:
             if response.ok:
                 text = await response.text()
                 return deserialize_json(text)
+
             elif response.status == 429:
-                wait_time = (
-                    int(response.headers.get("Retry-After", 60)) + 20
-                )  # Arbitrary value to have a security
+                wait_time = int(response.headers.get("Retry-After", 60))
+
+                if wait_time > 30:
+                    raise TraktException(
+                        f"Rate limit (429) reached on {url}. "
+                        f"Requested wait time of {wait_time}s is too long for initialization."
+                    )
+
                 return await self.retry_request(
-                    wait_time, response, method, url, retry, **kwargs
+                    wait_time + 2, response, method, url, retry, **kwargs
                 )
+
             else:
-                return await self.retry_request(
-                    300, response, method, url, retry, **kwargs
+                content = await response.text()
+                raise TraktException(
+                    f"HTTP {response.status} API Error on {url}. Content: {content}"
                 )
 
     async def fetch_calendar(
@@ -211,7 +220,10 @@ class TraktApi:
 
                     show["episode"] = raw_next_episode
 
-                    if raw_next_episode.get("first_aired") is not None:
+                    if (
+                        raw_next_episode
+                        and raw_next_episode.get("first_aired") is not None
+                    ):
                         show["first_aired"] = raw_next_episode["first_aired"]
 
                     return show
@@ -228,9 +240,14 @@ class TraktApi:
                     LOGGER.warning(f"Show {identifier} can't be extracted because: {e}")
                     return None
 
-        results = await gather(*[process_show(show) for show in raw_shows or []])
-        raw_medias = [r for r in results if r is not None]
+        async def process_show_with_limit(show):
+            async with self._semaphore:
+                return await process_show(show)
 
+        results = await gather(
+            *[process_show_with_limit(show) for show in raw_shows or []]
+        )
+        raw_medias = [r for r in results if r is not None]
         return raw_medias
 
     async def fetch_show_progress(self, id: str):
@@ -261,7 +278,8 @@ class TraktApi:
             f"shows/{show_id}/seasons/{season_nbr}/episodes/{episode_nbr}?extended=full",
         )
 
-        cache_insert(self.cache(), cache_key, response)
+        if response is not None:
+            cache_insert(self.cache(), cache_key, response)
 
         return response
 
