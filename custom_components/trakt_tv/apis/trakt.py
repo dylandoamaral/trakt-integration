@@ -87,13 +87,18 @@ class TraktApi:
         )
 
         async with response:
+            if allow_no_content and response.status == 204:
+                return None
+
             if response.ok:
                 text = await response.text()
+                if allow_no_content and text == "":
+                    return None
                 return deserialize_json(text)
             elif allow_no_content and response.status == 204:
                 return None
 
-            elif response.status == 429:
+            if response.status == 429:
                 wait_time = int(response.headers.get("Retry-After", 60))
 
                 if wait_time > 30:
