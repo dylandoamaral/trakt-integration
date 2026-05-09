@@ -65,7 +65,9 @@ class TraktApi:
             guidance = f"Too many retries, if you find this error, please raise an issue at https://github.com/dylandoamaral/trakt-integration/issues."
             raise TraktException(f"{error} {guidance}")
 
-    async def request(self, method, url, retry=10, **kwargs) -> dict[str, Any]:
+    async def request(
+        self, method, url, retry=10, allow_no_content: bool = False, **kwargs
+    ) -> dict[str, Any] | None:
         """Make a request."""
         access_token = await self.async_get_access_token()
         client_id = self.hass.data[DOMAIN]["configuration"]["client_id"]
@@ -88,6 +90,8 @@ class TraktApi:
             if response.ok:
                 text = await response.text()
                 return deserialize_json(text)
+            elif allow_no_content and response.status == 204:
+                return None
 
             elif response.status == 429:
                 wait_time = int(response.headers.get("Retry-After", 60))
@@ -107,6 +111,15 @@ class TraktApi:
                 raise TraktException(
                     f"HTTP {response.status} API Error on {url}. Content: {content}"
                 )
+
+    async def fetch_now_playing(self) -> dict[str, Any] | None:
+        """Fetch the currently watching media for the authenticated user."""
+        return await self.request(
+            "get",
+            "users/me/watching",
+            retry=0,
+            allow_no_content=True,
+        )
 
     async def fetch_calendar(
         self, path: str, from_date: str, nb_days: int, all_medias: bool
