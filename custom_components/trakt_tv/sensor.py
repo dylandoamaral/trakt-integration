@@ -3,6 +3,7 @@
 import logging
 from datetime import timedelta
 
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import Entity
 
 from .configuration import Configuration
@@ -168,6 +169,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 state=value,
             )
             sensors.append(sensor)
+
+    now_playing_coordinator = hass.data[DOMAIN]["instances"]["now_playing_coordinator"]
+    sensors.append(
+        TraktNowPlayingSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=now_playing_coordinator,
+        )
+    )
 
     async_add_entities(sensors)
 
@@ -335,3 +345,52 @@ class TraktStateSensor(Entity):
     async def async_update(self):
         """Request coordinator to update data."""
         await self.coordinator.async_request_refresh()
+
+
+class TraktNowPlayingSensor(TraktSensor, SensorEntity):
+    """Live now playing sensor using Trakt scrobble status."""
+
+    _attr_has_entity_name = True
+
+    def __init__(self, hass, config_entry, coordinator):
+        super().__init__(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.MOVIE,
+            source="now_playing",
+            prefix="Trakt",
+            mdi_icon="mdi:play-circle",
+        )
+        self._attr_unique_id = f"{self.config_entry.entry_id}_now_playing"
+
+    @property
+    def name(self):
+        return "Trakt Now Playing"
+
+    @property
+    def state(self):
+        payload = self.coordinator.data
+        if payload is None:
+            return "Idle"
+
+        media_type = payload.get("type")
+        if media_type == "movie":
+            return payload.get("movie", {}).get("title", "Idle")
+
+        if media_type == "episode":
+            show_title = payload.get("show", {}).get("title", "Unknown Show")
+            season = payload.get("episode", {}).get("season")
+            number = payload.get("episode", {}).get("number")
+            if isinstance(season, int) and isinstance(number, int):
+                return f"{show_title} - S{season:02}E{number:02}"
+            return f"{show_title} - S{season}E{number}"
+
+        return "Idle"
+
+    @property
+    def extra_state_attributes(self):
+        payload = self.coordinator.data
+        if payload is None:
+            return {}
+        return {"data": payload}

@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
@@ -71,7 +72,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await coordinator.async_config_entry_first_refresh()
 
-    instances = {"coordinator": coordinator, "api": api}
+    async def async_update_now_playing_data():
+        try:
+            return await api.fetch_now_playing()
+        except TraktException as err:
+            raise UpdateFailed(f"Communication error with Trakt API: {err}")
+
+    now_playing_coordinator = DataUpdateCoordinator(
+        hass=hass,
+        logger=LOGGER,
+        name="trakt_now_playing",
+        update_method=async_update_now_playing_data,
+        update_interval=timedelta(seconds=30),
+    )
+    await now_playing_coordinator.async_config_entry_first_refresh()
+
+    instances = {
+        "coordinator": coordinator,
+        "api": api,
+        "now_playing_coordinator": now_playing_coordinator,
+    }
     update_domain_data(hass, "instances", instances)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
