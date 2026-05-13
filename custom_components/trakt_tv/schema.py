@@ -51,6 +51,13 @@ def sensors_schema() -> Dict[str, Any]:
         "anticipated": anticipated_schema(),
         "watchlist": watchlist_schema(),
         "stats": Schema(stats_schema()),
+        "now_playing": now_playing_schema(),
+    }
+
+
+def now_playing_schema() -> Dict[str, Any]:
+    return {
+        Required("enabled", default=True): cv.boolean,
     }
 
 

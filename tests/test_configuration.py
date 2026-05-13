@@ -1,4 +1,6 @@
 from custom_components.trakt_tv.configuration import Configuration
+from custom_components.trakt_tv.const import DOMAIN
+from custom_components.trakt_tv.defaults import merge_sensor_config
 
 
 class TestConfiguration:
@@ -42,3 +44,60 @@ class TestConfiguration:
 
     def test_is_watchlist_only_unwatched_default(self, configuration):
         assert configuration.is_watchlist_only_unwatched("movie") is True
+
+
+def _build_data(options=None, yaml_sensors=None):
+    sensors = merge_sensor_config(yaml_sensors, options)
+    return {DOMAIN: {"configuration": {"sensors": sensors, "language": "en"}}}
+
+
+class TestUiManagedConfiguration:
+    def test_defaults_enable_all_groups(self):
+        configuration = Configuration(data=_build_data())
+        assert configuration.upcoming_identifier_exists("movie") is True
+        assert (
+            configuration.upcoming_identifier_exists("movie", all_medias=True) is True
+        )
+        assert configuration.recommendation_identifier_exists("movie") is True
+        assert configuration.anticipated_identifier_exists("movie") is True
+        assert configuration.next_to_watch_identifier_exists("all") is True
+        assert configuration.watchlist_identifier_exists("movie") is True
+        assert configuration.watchlist_identifier_exists("show") is True
+        assert configuration.source_exists("stats") is True
+        assert configuration.source_exists("now_playing") is True
+
+    def test_disable_watchlist_removes_group(self):
+        configuration = Configuration(
+            data=_build_data(options={"enable_watchlist": False})
+        )
+        assert configuration.watchlist_identifier_exists("movie") is False
+        assert configuration.watchlist_identifier_exists("show") is False
+
+    def test_disable_now_playing_removes_source(self):
+        configuration = Configuration(
+            data=_build_data(options={"enable_now_playing": False})
+        )
+        assert configuration.source_exists("now_playing") is False
+
+    def test_disable_upcoming_removes_identifiers(self):
+        configuration = Configuration(
+            data=_build_data(options={"enable_upcoming": False})
+        )
+        assert configuration.upcoming_identifier_exists("movie") is False
+        # all_upcoming is unaffected
+        assert (
+            configuration.upcoming_identifier_exists("movie", all_medias=True) is True
+        )
+
+    def test_yaml_sensors_survive_when_no_options(self):
+        configuration = Configuration(
+            data=_build_data(
+                yaml_sensors={
+                    "upcoming": {"movie": {"days_to_fetch": 60, "max_medias": 5}}
+                }
+            )
+        )
+        # YAML value wins for upcoming.movie
+        assert configuration.get_upcoming_days_to_fetch("movie") == 60
+        # Other groups still get defaults
+        assert configuration.watchlist_identifier_exists("movie") is True

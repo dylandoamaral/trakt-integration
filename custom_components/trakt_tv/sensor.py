@@ -1,7 +1,7 @@
 """Platform for sensor integration."""
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import Entity
@@ -170,14 +170,19 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             )
             sensors.append(sensor)
 
-    now_playing_coordinator = hass.data[DOMAIN]["instances"]["now_playing_coordinator"]
-    sensors.append(
-        TraktNowPlayingSensor(
-            hass=hass,
-            config_entry=config_entry,
-            coordinator=now_playing_coordinator,
-        )
+    now_playing_coordinator = hass.data[DOMAIN]["instances"].get(
+        "now_playing_coordinator"
     )
+    if now_playing_coordinator is not None and configuration.source_exists(
+        "now_playing"
+    ):
+        sensors.append(
+            TraktNowPlayingSensor(
+                hass=hass,
+                config_entry=config_entry,
+                coordinator=now_playing_coordinator,
+            )
+        )
 
     async_add_entities(sensors)
 
@@ -393,4 +398,36 @@ class TraktNowPlayingSensor(TraktSensor, SensorEntity):
         payload = self.coordinator.data
         if payload is None:
             return {}
-        return {"data": payload}
+
+        attrs = {"data": payload}
+
+        artwork = payload.get("artwork") or {}
+        poster = artwork.get("poster")
+        fanart = artwork.get("fanart")
+        if poster:
+            attrs["poster"] = poster
+            attrs["entity_picture"] = poster
+        if fanart:
+            attrs["fanart"] = fanart
+
+        seconds_left = _seconds_left_from_payload(payload)
+        if seconds_left is not None:
+            attrs["seconds_left"] = seconds_left
+
+        return attrs
+
+
+def _seconds_left_from_payload(payload: dict) -> int | None:
+    """Return remaining playback seconds from a now-playing payload, if known."""
+    expires_at = payload.get("expires_at")
+    if not expires_at:
+        return None
+    try:
+        cleaned = expires_at.replace("Z", "+00:00")
+        expires = datetime.fromisoformat(cleaned)
+    except (AttributeError, TypeError, ValueError):
+        return None
+    if expires.tzinfo is None:
+        expires = expires.replace(tzinfo=timezone.utc)
+    delta = (expires - datetime.now(timezone.utc)).total_seconds()
+    return max(0, int(delta))

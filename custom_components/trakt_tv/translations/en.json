@@ -24,8 +24,17 @@
     "options": {
         "step": {
             "init": {
+                "title": "Trakt sensors",
+                "description": "Choose which Trakt sensor groups should be created.",
                 "data": {
-                    "fetch_intervals": "Update frequency (seconds)"
+                    "enable_upcoming": "Upcoming",
+                    "enable_all_upcoming": "All Upcoming",
+                    "enable_next_to_watch": "Next to Watch",
+                    "enable_recommendation": "Recommendation",
+                    "enable_anticipated": "Anticipated",
+                    "enable_watchlist": "Watchlist",
+                    "enable_stats": "Stats",
+                    "enable_now_playing": "Now Playing"
                 }
             }
         }

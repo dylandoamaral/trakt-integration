@@ -34,9 +34,7 @@ def test_request_allow_no_content_returns_none_for_204():
     )
     api = TraktApi(websession=web_session, oauth_session=oauth_session, hass=hass)
 
-    answer = asyncio.run(
-        api.request("get", "users/me/watching", allow_no_content=True)
-    )
+    answer = asyncio.run(api.request("get", "users/me/watching", allow_no_content=True))
 
     assert answer is None
 
@@ -49,8 +47,6 @@ def test_request_allow_no_content_returns_none_for_empty_body():
     )
     api = TraktApi(websession=web_session, oauth_session=oauth_session, hass=hass)
 
-    answer = asyncio.run(
-        api.request("get", "users/me/watching", allow_no_content=True)
-    )
+    answer = asyncio.run(api.request("get", "users/me/watching", allow_no_content=True))
 
     assert answer is None

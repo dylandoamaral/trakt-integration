@@ -20,6 +20,7 @@ from ..exception import TraktException
 from ..models.kind import BASIC_KINDS, UPCOMING_KINDS, TraktKind
 from ..models.media import Medias
 from ..utils import cache_insert, cache_retrieve, deserialize_json, extract_value_from
+from .tmdb import get_movie_data, get_show_data
 
 LOGGER = logging.getLogger(__name__)
 
@@ -119,12 +120,63 @@ class TraktApi:
 
     async def fetch_now_playing(self) -> dict[str, Any] | None:
         """Fetch the currently watching media for the authenticated user."""
-        return await self.request(
+        payload = await self.request(
             "get",
             "users/me/watching",
             retry=0,
             allow_no_content=True,
         )
+        if payload is None:
+            return None
+
+        await self._enrich_now_playing_payload(payload)
+        return payload
+
+    async def _enrich_now_playing_payload(self, payload: dict[str, Any]) -> None:
+        """Attach TMDB poster/fanart URLs to a now-playing payload."""
+        media_type = payload.get("type")
+        if media_type == "movie":
+            tmdb_id = (payload.get("movie") or {}).get("ids", {}).get("tmdb")
+            fetcher = get_movie_data
+            cache_prefix = "now_playing_movie"
+        elif media_type == "episode":
+            tmdb_id = (payload.get("show") or {}).get("ids", {}).get("tmdb")
+            fetcher = get_show_data
+            cache_prefix = "now_playing_show"
+        else:
+            return
+
+        if not tmdb_id:
+            return
+
+        try:
+            language = Configuration(data=self.hass.data).get_language()
+        except KeyError:
+            language = "en"
+
+        cache_key = f"{cache_prefix}_{tmdb_id}_{language}"
+        tmdb_payload = cache_retrieve(self.cache(), cache_key)
+        if tmdb_payload is None:
+            try:
+                tmdb_payload = await fetcher(tmdb_id, language)
+            except Exception as err:  # noqa: BLE001 - artwork is best-effort
+                LOGGER.debug("Failed to enrich now playing from TMDB: %s", err)
+                return
+            if tmdb_payload:
+                cache_insert(self.cache(), cache_key, tmdb_payload)
+
+        if not isinstance(tmdb_payload, dict):
+            return
+
+        artwork: dict[str, str] = {}
+        poster_path = tmdb_payload.get("poster_path")
+        backdrop_path = tmdb_payload.get("backdrop_path")
+        if poster_path:
+            artwork["poster"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
+        if backdrop_path:
+            artwork["fanart"] = f"https://image.tmdb.org/t/p/w500{backdrop_path}"
+        if artwork:
+            payload["artwork"] = artwork
 
     async def fetch_calendar(
         self, path: str, from_date: str, nb_days: int, all_medias: bool
