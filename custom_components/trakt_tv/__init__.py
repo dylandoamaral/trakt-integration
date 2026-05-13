@@ -2,8 +2,7 @@
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
@@ -34,8 +33,9 @@ def _default_language() -> str:
     return "en"
 
 
-def _default_timezone() -> str:
-    tz = datetime.now(ZoneInfo("UTC")).astimezone().tzname()
+def _default_timezone(hass: HomeAssistant) -> str:
+    """Return a valid IANA timezone key, falling back to UTC."""
+    tz = getattr(getattr(hass, "config", None), "time_zone", None)
     return tz or "UTC"
 
 
@@ -50,7 +50,7 @@ def _build_configuration(hass: HomeAssistant, entry: ConfigEntry) -> dict:
         "client_id": entry.data[CONF_CLIENT_ID],
         "sensors": sensors,
         "language": yaml_config.get("language", _default_language()),
-        "timezone": yaml_config.get("timezone", _default_timezone()),
+        "timezone": yaml_config.get("timezone", _default_timezone(hass)),
     }
 
 

@@ -26,6 +26,22 @@ class TestConfiguration:
         configuration = Configuration(data={})
         assert configuration.get_language() == "en"
 
+    def test_get_timezone_falls_back_to_utc_for_abbreviation(self):
+        configuration = Configuration(
+            data={DOMAIN: {"configuration": {"timezone": "IST"}}}
+        )
+        assert configuration.get_timezone() == "UTC"
+
+    def test_get_timezone_accepts_iana_zone(self):
+        configuration = Configuration(
+            data={DOMAIN: {"configuration": {"timezone": "Europe/Dublin"}}}
+        )
+        assert configuration.get_timezone() == "Europe/Dublin"
+
+    def test_get_timezone_missing_defaults_to_utc(self):
+        configuration = Configuration(data={DOMAIN: {"configuration": {}}})
+        assert configuration.get_timezone() == "UTC"
+
     def test_watchlist_identifier_exists(self, configuration):
         assert configuration.watchlist_identifier_exists("movie") is True
         assert configuration.watchlist_identifier_exists("show") is False

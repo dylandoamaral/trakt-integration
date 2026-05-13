@@ -1,8 +1,6 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any, Dict
-
-from dateutil.tz import tzlocal
+from zoneinfo import available_timezones
 
 from custom_components.trakt_tv.const import DOMAIN
 from custom_components.trakt_tv.models.kind import TraktKind
@@ -24,9 +22,15 @@ class Configuration:
 
     def get_timezone(self) -> str:
         try:
-            return self.conf["timezone"]
+            tz = self.conf["timezone"]
         except KeyError:
-            return datetime.now(tzlocal()).tzname()
+            return "UTC"
+        # Guard against pre-existing configs that stored an abbreviation
+        # (e.g. "IST", "EDT") instead of an IANA zone key — ZoneInfo only
+        # accepts IANA keys, so fall back to UTC rather than crashing setup.
+        if tz and tz in available_timezones():
+            return tz
+        return "UTC"
 
     def identifier_exists(self, identifier: str, source: str) -> bool:
         try:
