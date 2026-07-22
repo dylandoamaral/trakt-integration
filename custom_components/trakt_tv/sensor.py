@@ -8,6 +8,7 @@ from homeassistant.helpers.entity import Entity
 from .configuration import Configuration
 from .const import DOMAIN
 from .models.kind import ANTICIPATED_KINDS, BASIC_KINDS, NEXT_TO_WATCH_KINDS, TraktKind
+from .models.media import first_item
 
 LOGGER = logging.getLogger(__name__)
 
@@ -108,6 +109,30 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             trakt_kind=TraktKind.SHOW,
             source="watchlist",
             prefix="Trakt Watchlist",
+            mdi_icon="mdi:television",
+        )
+        sensors.append(sensor)
+
+    if configuration.collection_identifier_exists("movie"):
+        sensor = TraktSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.MOVIE,
+            source="collection",
+            prefix="Trakt Collection",
+            mdi_icon="mdi:movie",
+        )
+        sensors.append(sensor)
+
+    if configuration.collection_identifier_exists("show"):
+        sensor = TraktSensor(
+            hass=hass,
+            config_entry=config_entry,
+            coordinator=coordinator,
+            trakt_kind=TraktKind.SHOW,
+            source="collection",
+            prefix="Trakt Collection",
             mdi_icon="mdi:television",
         )
         sensors.append(sensor)
@@ -237,6 +262,11 @@ class TraktSensor(Entity):
     def data(self):
         if not self.medias:
             return []
+
+        if self.source == "collection":
+            max_medias = self.configuration["max_medias"]
+            medias = [media.to_homeassistant() for media in self.medias.items]
+            return [first_item] + medias[:max_medias]
 
         sort_config = {}
         if self.trakt_kind == TraktKind.LIST:

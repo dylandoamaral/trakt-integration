@@ -123,6 +123,15 @@ class Configuration:
         except KeyError:
             return True
 
+    def collection_identifier_exists(self, identifier: str) -> bool:
+        return self.identifier_exists(identifier, "collection")
+
+    def get_collection_max_medias(self, identifier: str) -> int:
+        try:
+            return self.conf["sensors"]["collection"][identifier]["max_medias"]
+        except KeyError:
+            return 20
+
     def get_sensor_config(self, identifier: str) -> list:
         try:
             return self.conf["sensors"][identifier]

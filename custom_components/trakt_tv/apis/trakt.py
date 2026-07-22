@@ -763,6 +763,50 @@ class TraktApi:
 
         return res
 
+    async def fetch_collection(self):
+        configuration = Configuration(data=self.hass.data)
+        language = configuration.get_language()
+        res = {}
+
+        for identifier, trakt_kind, path in [
+            ("movie", TraktKind.MOVIE, "movies"),
+            ("show", TraktKind.SHOW, "shows"),
+        ]:
+            if not configuration.collection_identifier_exists(identifier):
+                continue
+
+            max_medias = configuration.get_collection_max_medias(identifier)
+            raw_medias = []
+            page = 1
+
+            while len(raw_medias) < max_medias:
+                page_limit = min(100, max_medias - len(raw_medias))
+                page_medias = await self.request(
+                    "get",
+                    f"sync/collection/{path}?extended=full"
+                    f"&page={page}&limit={page_limit}",
+                )
+
+                if not page_medias:
+                    break
+
+                raw_medias.extend(page_medias[:page_limit])
+
+                if len(page_medias) < page_limit:
+                    break
+
+                page += 1
+
+            medias = [
+                trakt_kind.value.model.from_trakt(media[identifier])
+                for media in raw_medias
+            ]
+
+            await gather(*[media.get_more_information(language) for media in medias])
+            res[trakt_kind] = Medias(medias[:max_medias])
+
+        return res
+
     async def retrieve_data(self):
         async with timeout(1800):
             configuration = Configuration(data=self.hass.data)
@@ -817,6 +861,10 @@ class TraktApi:
             if configuration.source_exists("watchlist"):
                 sources.append("watchlist")
                 coroutine_sources_data.append(self.fetch_watchlist())
+
+            if configuration.source_exists("collection"):
+                sources.append("collection")
+                coroutine_sources_data.append(self.fetch_collection())
 
             """Then, let's add the next to watch sensors if needed"""
             for sub_source in [

@@ -18,6 +18,11 @@ def yaml():
                             "sort_order": "desc",
                         }
                     },
+                    "collection": {
+                        "movie": {
+                            "max_medias": 5,
+                        }
+                    },
                     "next_to_watch": {
                         "only_aired": {
                             "sort_by": "released",

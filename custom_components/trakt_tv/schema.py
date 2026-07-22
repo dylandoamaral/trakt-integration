@@ -50,6 +50,7 @@ def sensors_schema() -> Dict[str, Any]:
         "lists": Schema([lists_schema()]),
         "anticipated": anticipated_schema(),
         "watchlist": watchlist_schema(),
+        "collection": collection_schema(),
         "stats": Schema(stats_schema()),
     }
 
@@ -109,6 +110,18 @@ def watchlist_schema() -> Dict[str, Any]:
             ["released", "title", "added", "rating"]
         ),
         Required("sort_order", default="asc"): In(["asc", "desc"]),
+    }
+
+    return {
+        "movie": subschema,
+        "show": subschema,
+    }
+
+
+def collection_schema() -> Dict[str, Any]:
+    """Schema for the collection sensor."""
+    subschema = {
+        Required("max_medias", default=20): cv.positive_int,
     }
 
     return {

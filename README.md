@@ -248,6 +248,28 @@ trakt_tv:
         sort_order: asc
 ```
 
+##### Collection Sensors
+
+These sensors display movies and shows from your personal Trakt.tv collection.
+
+- `sensor.trakt_collection_movies`: Creates a sensor with movies from your collection.
+- `sensor.trakt_collection_shows`: Creates a sensor with shows from your collection.
+
+###### Configuration
+
+```yaml
+trakt_tv:
+  sensors:
+    collection:
+      movie:
+        max_medias: 20
+      show:
+        max_medias: 20
+```
+
+`max_medias` is the maximum number of collected movies or shows to display. Its
+default value is `20`. Items are displayed in the order returned by Trakt.
+
 ##### Lists sensor
 
 Lists sensor allows you to fetch both public and private lists from Trakt, each list will be a sensor. The items in the list will be sorted by their rank on Trakt.

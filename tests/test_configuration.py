@@ -42,3 +42,13 @@ class TestConfiguration:
 
     def test_is_watchlist_only_unwatched_default(self, configuration):
         assert configuration.is_watchlist_only_unwatched("movie") is True
+
+    def test_collection_identifier_exists(self, configuration):
+        assert configuration.collection_identifier_exists("movie") is True
+        assert configuration.collection_identifier_exists("show") is False
+
+    def test_get_collection_max_medias_default(self, configuration):
+        assert configuration.get_collection_max_medias("show") == 20
+
+    def test_get_collection_max_medias(self, configuration):
+        assert configuration.get_collection_max_medias("movie") == 5
