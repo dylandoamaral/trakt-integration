@@ -1,0 +1,34 @@
+{
+    "title": "Trakt",
+    "config": {
+        "abort": {
+            "authorize_url_timeout": "Zeitüberschreitung beim Erzeugen der Anmelde-URL.",
+            "missing_configuration": "Die Komponente ist nicht konfiguriert. Bitte die Dokumentation beachten.",
+            "no_url_available": "Keine URL verfügbar. Infos zu diesem Fehler: [Hilfe]({docs_url})"
+        },
+        "create_entry": {
+            "default": "Erfolgreich angemeldet"
+        },
+        "step": {
+            "pick_implementation": {
+                "title": "Anmeldemethode wählen"
+            },
+            "user": {
+                "description": "Neue Trakt-Apps haben nur eine Client ID und melden sich per PKCE an – das Client Secret einfach leer lassen.",
+                "data": {
+                    "client_id": "Client ID",
+                    "client_secret": "Client Secret (bei neuen Trakt-Apps leer lassen)"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "fetch_intervals": "Aktualisierungsintervall (Sekunden)"
+                }
+            }
+        }
+    }
+}
