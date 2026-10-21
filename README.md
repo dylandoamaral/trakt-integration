@@ -385,7 +385,7 @@ Note: You will not see anything new in Home Assistant yet.
 
 ### 4. Prepare Trakt
 
-You have to provide a `client_id` and a `client_secret` to use this integration. Get these keys with the following:
+You have to provide a `client_id` to use this integration. Apps created before October 2026 also have a `client_secret`; newer apps sign in with [PKCE](https://developer.trakt.tv/docs/pkce) and Trakt no longer issues a secret for them. Get these keys with the following:
 
 - Go to the [Trakt API Apps](https://trakt.tv/oauth/applications) page and press the **New application** button
 - Fill in the **Name** (required) and **Description** (optional) fields. These fields are just for your own reference
@@ -396,7 +396,7 @@ You have to provide a `client_id` and a `client_secret` to use this integration.
     - If you do not use HA Cloud: `https://<your-ha-server-address>:<port>/auth/external/callback`
 - Do not enter anything in **Javascript (cors) origins** and do not select any **Permissions**
 - Press the **Save app** button
-- Record the displayed `client_id` and `client_secret`
+- Record the displayed `client_id` (and the `client_secret`, if your app has one)
   - Note: You do not need to press the **Authorize** button!
 
 ### 5. Add Home Assistant Integration
@@ -404,7 +404,8 @@ You have to provide a `client_id` and a `client_secret` to use this integration.
 - In Home Assistant, go to Configuration > Integrations
 - Press the **Add Integration** button
 - Search for "Trakt" and click on it
-- Enter the `client_id` and `client_secret` from Trakt
+- Enter the `client_id` from Trakt
+- Enter the `client_secret` only if your Trakt app has one; leave the field empty for newer apps (the integration then signs in with PKCE)
 - Press the **Submit** button
 - Press the **Finish** button
 
