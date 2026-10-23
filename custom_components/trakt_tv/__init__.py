@@ -6,7 +6,6 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.config_entry_oauth2_flow import (
     OAuth2Session,
@@ -16,8 +15,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .apis.trakt import TraktApi
 from .config_flow import OAuth2FlowHandler
-from .const import DOMAIN, OAUTH2_AUTHORIZE, OAUTH2_TOKEN
+from .const import DOMAIN
 from .exception import TraktException
+from .oauth import build_implementation
 from .schema import configuration_schema
 from .utils import update_domain_data
 
@@ -37,13 +37,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up TraktTV from a config entry."""
     OAuth2FlowHandler.async_register_implementation(
         hass,
-        config_entry_oauth2_flow.LocalOAuth2Implementation(
+        build_implementation(
             hass,
-            DOMAIN,
             entry.data[CONF_CLIENT_ID],
-            entry.data[CONF_CLIENT_SECRET],
-            OAUTH2_AUTHORIZE,
-            OAUTH2_TOKEN,
+            entry.data.get(CONF_CLIENT_SECRET),
         ),
     )
 

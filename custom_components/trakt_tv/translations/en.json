@@ -16,8 +16,9 @@
             "user": {
                 "data": {
                     "client_id": "Client ID",
-                    "client_secret": "Client secret"
-                }
+                    "client_secret": "Client secret (leave empty for new Trakt apps)"
+                },
+                "description": "New Trakt apps only have a Client ID and sign in with PKCE – leave the client secret empty."
             }
         }
     },
