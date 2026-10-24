@@ -159,9 +159,13 @@ class TraktApi:
                 "progress_collected",
                 "dropped",
             ]:
-                hidden_items = await self.request(
-                    "get", f"users/hidden/{section}?type=show"
-                )
+                try:
+                    hidden_items = await self.request(
+                        "get", f"users/hidden/{section}?type=show"
+                    )
+                except TraktException as err:
+                    LOGGER.warning("Skipping hidden section %s: %s", section, err)
+                    continue
                 if hidden_items is not None:
                     for hidden_item in hidden_items:
                         try:
